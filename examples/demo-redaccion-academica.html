@@ -1,0 +1,1513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Redacción Académica · Demo · claude-students</title>
+<style>
+:root{
+  --paper:#fbf7ef;
+  --ink:#1d1a16;
+  --muted:#6b6357;
+  --line:#d8cfbc;
+  --accent:#9d2b2b;
+  --t1:#1d4ed8;  /* Concepto - azul tinta */
+  --t2:#b8860b;  /* Subrayado - dorado/amarillo highlighter */
+  --t3:#0f766e;  /* Apuntes - verde Cornell */
+  --t4:#7c3aed;  /* Esquema - violeta jerarquía */
+  --t5:#dc2626;  /* Resumen - rojo coral */
+  --t6:#be185d;  /* Ensayo - magenta creatividad */
+  --t7:#0891b2;  /* Ejemplos - cyan */
+  --gold:#c98a00;
+  --bg-card:#ffffff;
+  --bg-soft:#f3edde;
+  --serif:"Iowan Old Style","Palatino Linotype","Palatino","Cambria",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+  --mono:"SF Mono","Cascadia Mono","Consolas",monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:var(--sans);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--t1) 6%, transparent), transparent 60%),
+    radial-gradient(1000px 500px at -10% 90%, color-mix(in srgb, var(--t6) 6%, transparent), transparent 60%),
+    var(--paper);
+  color:var(--ink);
+  line-height:1.65;
+  font-size:16px;
+  transition:background .3s, color .3s;
+}
+.darkmode-input, .focusmode-input{position:absolute;opacity:0;pointer-events:none}
+
+/* DARK MODE */
+body:has(.darkmode-input:checked){
+  --paper:#0f0e0c;
+  --ink:#f0e8d6;
+  --muted:#a89e88;
+  --line:#3a3528;
+  --bg-card:#1a1814;
+  --bg-soft:#221e16;
+  --t1:#60a5fa;
+  --t2:#fbbf24;
+  --t3:#5eead4;
+  --t4:#c4b5fd;
+  --t5:#fca5a5;
+  --t6:#f9a8d4;
+  --t7:#67e8f9;
+}
+
+/* FOCUS MODE */
+body:has(.focusmode-input:checked) section{transition:opacity .25s, filter .25s}
+body:has(.focusmode-input:checked) section:not(:hover):not(:focus-within){opacity:.18;filter:blur(.4px)}
+
+/* TOOLBAR */
+.toolbar{
+  position:sticky;top:0;z-index:90;
+  background:color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:.6rem 1.2rem;
+  display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;
+}
+.toolbar .brand{font-family:var(--serif);font-weight:700;color:var(--accent);font-size:1.05rem;letter-spacing:.02em}
+.toolbar .brand small{display:block;font-family:var(--sans);font-weight:400;color:var(--muted);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase}
+.toolbar .grow{flex:1}
+.toolbar label.btn{
+  cursor:pointer;
+  padding:.35rem .7rem;border-radius:99px;border:1px solid var(--line);
+  font-size:.78rem;font-weight:600;
+  background:var(--bg-card);
+  user-select:none;display:inline-flex;gap:.4rem;align-items:center;
+  transition:background .15s;
+}
+.toolbar label.btn:hover{background:var(--bg-soft)}
+body:has(.darkmode-input:checked) .toolbar label.btn[for="dm"]{background:var(--t1);color:#0f0e0c;border-color:var(--t1)}
+body:has(.focusmode-input:checked) .toolbar label.btn[for="fm"]{background:var(--t6);color:#fff;border-color:var(--t6)}
+
+/* TOC INTEGRATED */
+.toc{
+  display:flex;gap:.3rem;flex-wrap:wrap;
+  padding:.5rem 1.2rem .9rem;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--paper) 95%, transparent) 0%, transparent 100%);
+  border-bottom:1px solid var(--line);
+}
+.toc a{
+  font-size:.74rem;font-weight:600;
+  padding:.3rem .7rem;border-radius:99px;
+  text-decoration:none;color:var(--ink);
+  border:1px solid var(--line);
+  background:var(--bg-card);
+  transition:transform .12s, box-shadow .12s;
+}
+.toc a:hover{transform:translateY(-1px);box-shadow:0 4px 10px -3px rgba(0,0,0,.15)}
+.toc a.t1{border-bottom:3px solid var(--t1)}
+.toc a.t2{border-bottom:3px solid var(--t2)}
+.toc a.t3{border-bottom:3px solid var(--t3)}
+.toc a.t4{border-bottom:3px solid var(--t4)}
+.toc a.t5{border-bottom:3px solid var(--t5)}
+.toc a.t6{border-bottom:3px solid var(--t6)}
+.toc a.t7{border-bottom:3px solid var(--t7)}
+
+/* LAYOUT */
+main{max-width:1180px;margin:0 auto;padding:2rem 1.2rem 6rem}
+section{margin:3.5rem 0;scroll-margin-top:120px}
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.2;letter-spacing:-.01em}
+h1{font-size:clamp(2.2rem,5.5vw,3.6rem);margin:.2rem 0}
+h2{font-size:clamp(1.6rem,3.5vw,2.3rem);margin:0 0 .3rem}
+h3{font-size:1.3rem;margin:1.8rem 0 .4rem}
+h4{font-size:1.05rem;margin:1.1rem 0 .35rem;color:var(--accent)}
+.kicker{display:inline-block;padding:.25rem .7rem;background:var(--bg-soft);color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border-radius:99px;margin-bottom:.6rem}
+.lead{font-family:var(--serif);font-size:1.18rem;color:var(--muted);max-width:62ch}
+p{margin:.6rem 0}
+
+/* HERO */
+.hero{
+  margin:2.2rem 0 4rem;
+  padding:2.5rem 2rem;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--t1) 5%, var(--bg-card)) 0%, color-mix(in srgb, var(--t6) 5%, var(--bg-card)) 100%);
+  border:1px solid var(--line);
+  border-radius:22px;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:"";position:absolute;top:-30%;right:-10%;width:380px;height:380px;
+  background:radial-gradient(circle, color-mix(in srgb, var(--t2) 25%, transparent), transparent 70%);
+  filter:blur(40px);
+}
+.hero h1{position:relative}
+.hero .meta{color:var(--muted);font-size:.85rem;margin-top:.8rem;display:flex;gap:1.2rem;flex-wrap:wrap;position:relative}
+.hero .meta span{display:inline-flex;align-items:center;gap:.3rem}
+.tldr{
+  margin-top:1.8rem;padding:1.2rem 1.4rem;
+  background:color-mix(in srgb, var(--gold) 8%, var(--bg-card));
+  border-left:4px solid var(--gold);
+  border-radius:0 12px 12px 0;
+  position:relative;
+}
+.tldr h4{margin:.1rem 0 .4rem;color:var(--gold)}
+.tldr p{margin:0;font-size:.97rem}
+
+/* SECTION COLOR ACCENTS */
+section.t1 h2{color:var(--t1)}
+section.t2 h2{color:var(--t2)}
+section.t3 h2{color:var(--t3)}
+section.t4 h2{color:var(--t4)}
+section.t5 h2{color:var(--t5)}
+section.t6 h2{color:var(--t6)}
+section.t7 h2{color:var(--t7)}
+section.t1 .kicker{color:var(--t1);background:color-mix(in srgb, var(--t1) 12%, var(--bg-card))}
+section.t2 .kicker{color:var(--t2);background:color-mix(in srgb, var(--t2) 12%, var(--bg-card))}
+section.t3 .kicker{color:var(--t3);background:color-mix(in srgb, var(--t3) 12%, var(--bg-card))}
+section.t4 .kicker{color:var(--t4);background:color-mix(in srgb, var(--t4) 12%, var(--bg-card))}
+section.t5 .kicker{color:var(--t5);background:color-mix(in srgb, var(--t5) 12%, var(--bg-card))}
+section.t6 .kicker{color:var(--t6);background:color-mix(in srgb, var(--t6) 12%, var(--bg-card))}
+section.t7 .kicker{color:var(--t7);background:color-mix(in srgb, var(--t7) 12%, var(--bg-card))}
+
+/* CARD GRID */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin:1.2rem 0}
+.card{background:var(--bg-card);border:1px solid var(--line);border-radius:14px;padding:1.1rem 1.25rem;position:relative;transition:transform .15s, box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px -10px rgba(0,0,0,.18)}
+.card h4{margin-top:0;font-family:var(--sans);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card .big{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--ink);margin:.3rem 0 .5rem}
+.card p{font-size:.92rem;color:var(--muted);margin:.4rem 0 0}
+.card.t1{border-top:3px solid var(--t1)}
+.card.t2{border-top:3px solid var(--t2)}
+.card.t3{border-top:3px solid var(--t3)}
+.card.t4{border-top:3px solid var(--t4)}
+.card.t5{border-top:3px solid var(--t5)}
+.card.t6{border-top:3px solid var(--t6)}
+
+/* CHARACTERISTIC BADGE */
+.char-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem;margin:1.2rem 0}
+.char{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:.9rem;text-align:center}
+.char .icon{font-family:var(--serif);font-size:1.8rem;font-weight:700;color:var(--t1);display:block;line-height:1}
+.char strong{display:block;margin:.4rem 0 .2rem;font-size:.95rem}
+.char small{color:var(--muted);font-size:.78rem;line-height:1.4;display:block}
+
+/* HIGHLIGHTER COLOR SYSTEM */
+.colors-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.8rem;margin:1rem 0}
+.color-swatch{padding:1rem;border-radius:12px;border:1px solid var(--line);background:var(--bg-card);position:relative;overflow:hidden}
+.color-swatch::before{content:"";position:absolute;top:0;left:0;right:0;height:8px;background:var(--c)}
+.color-swatch.amarillo{--c:#fde047}
+.color-swatch.verde{--c:#4ade80}
+.color-swatch.azul{--c:#60a5fa}
+.color-swatch.rosa{--c:#f9a8d4}
+.color-swatch.naranja{--c:#fb923c}
+.color-swatch h5{margin:.4rem 0 .3rem;font-family:var(--sans);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+.color-swatch p{margin:0;font-size:.86rem;color:var(--muted)}
+.demo-text{background:color-mix(in srgb, var(--c) 50%, transparent);padding:0 .2em;border-radius:2px}
+
+/* TIMELINE / FLOW */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin:1.5rem 0;position:relative}
+.flow .step{background:var(--bg-card);border:1px solid var(--line);border-radius:12px;padding:1rem;position:relative}
+.flow .step .num{position:absolute;top:-12px;left:1rem;background:var(--accent);color:#fff;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;font-family:var(--mono)}
+.flow .step h4{margin:.5rem 0 .3rem;color:var(--ink)}
+.flow .step p{margin:0;font-size:.88rem;color:var(--muted)}
+
+/* CORNELL METHOD */
+.cornell{display:grid;grid-template-columns:1fr 2.5fr;grid-template-rows:auto 100px;gap:0;border:2px solid var(--t3);border-radius:14px;overflow:hidden;margin:1.5rem 0;min-height:280px;background:var(--bg-card)}
+.cornell-cell{padding:1rem;border-color:var(--t3)}
+.cornell-cues{border-right:1px solid var(--t3);background:color-mix(in srgb, var(--t3) 6%, var(--bg-card))}
+.cornell-notes{}
+.cornell-summary{grid-column:1/-1;border-top:1px solid var(--t3);background:color-mix(in srgb, var(--t3) 4%, var(--bg-card))}
+.cornell-cell h5{margin:0 0 .4rem;color:var(--t3);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;font-family:var(--sans)}
+.cornell-cell p{margin:.2rem 0;font-size:.88rem;color:var(--muted)}
+.cornell-cell ul{margin:.3rem 0 0;padding-left:1rem;font-size:.85rem;color:var(--muted)}
+
+/* OUTLINE METHOD */
+.outline-demo{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:1rem 1.4rem;font-family:var(--serif);font-size:.95rem}
+.outline-demo .l1{margin:.3rem 0;font-weight:700;color:var(--t4)}
+.outline-demo .l2{margin-left:1.5rem;color:var(--ink)}
+.outline-demo .l3{margin-left:3rem;color:var(--muted);font-size:.9rem}
+.outline-demo .l4{margin-left:4.5rem;color:var(--muted);font-size:.85rem;font-style:italic}
+
+/* PIRAMID / HIERARCHY */
+.hierarchy{display:flex;flex-direction:column;align-items:center;gap:.3rem;margin:1.5rem 0;padding:1rem}
+.hierarchy .level{padding:.7rem 1rem;border-radius:8px;text-align:center;color:#fff;font-weight:700;font-size:.92rem}
+.hierarchy .l-1{width:95%;background:var(--t4)}
+.hierarchy .l-2{width:75%;background:color-mix(in srgb, var(--t4) 75%, white)}
+.hierarchy .l-3{width:55%;background:color-mix(in srgb, var(--t4) 50%, white);color:var(--ink)}
+.hierarchy .l-4{width:35%;background:color-mix(in srgb, var(--t4) 30%, white);color:var(--ink)}
+
+/* DIAGRAM SCHEMA */
+.schema-diagram{margin:1.5rem 0;padding:1.5rem;background:var(--bg-card);border:1px solid var(--line);border-radius:14px}
+.schema-tree{font-family:var(--serif);font-size:1.02rem}
+.schema-tree .main{font-weight:800;color:var(--t4);font-size:1.15rem}
+.schema-tree .branch{margin:.5rem 0 .5rem 1.5rem;padding-left:1rem;border-left:2px dashed color-mix(in srgb, var(--t4) 40%, transparent)}
+.schema-tree .leaf{margin:.3rem 0;color:var(--muted);font-size:.92rem}
+
+/* SIX QUESTIONS GRID */
+.q6-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin:1.2rem 0}
+.q6{background:var(--bg-card);border:1px solid var(--line);border-radius:14px;padding:1.1rem;text-align:center;position:relative;transition:transform .15s}
+.q6:hover{transform:translateY(-3px)}
+.q6 .word{font-family:var(--serif);font-size:1.8rem;font-weight:800;color:var(--t5);display:block;line-height:1}
+.q6 .pos{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;display:block}
+.q6 small{display:block;margin-top:.5rem;color:var(--muted);font-size:.84rem;font-style:italic;line-height:1.4}
+
+/* 13 STEPS RESUMEN */
+.steps-13{margin:1.2rem 0}
+.step-num{display:inline-block;width:28px;height:28px;border-radius:50%;background:var(--t5);color:#fff;text-align:center;font-weight:800;font-size:.85rem;line-height:28px;margin-right:.5rem;font-family:var(--mono)}
+
+/* ESSAY STRUCTURE */
+.essay-struct{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:1.5rem 0}
+.essay-struct .part{padding:1.2rem;border-radius:14px;border:2px solid var(--t6);background:color-mix(in srgb, var(--t6) 5%, var(--bg-card));position:relative}
+.essay-struct .part::before{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:50%;height:3px;background:var(--t6);border-radius:3px}
+.essay-struct .part h4{color:var(--t6);margin:.3rem 0 .5rem}
+.essay-struct .part p{font-size:.88rem;margin:.3rem 0}
+
+/* ESSAY CLASSES */
+.essay-classes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem;margin:1.2rem 0}
+.essay-class{background:var(--bg-card);border:1px solid var(--line);border-radius:14px;padding:1.2rem;border-left:5px solid var(--t6)}
+.essay-class h4{margin:0 0 .4rem;color:var(--t6);font-family:var(--serif);font-size:1.1rem}
+.essay-class .areas{font-size:.78rem;color:var(--muted);font-style:italic;margin:.4rem 0}
+.essay-class p{margin:.3rem 0;font-size:.9rem}
+
+/* INTERACTIVE CORRECTOR */
+.corrector{
+  background:var(--bg-card);border:2px solid var(--accent);border-radius:14px;
+  padding:1.5rem;margin:1.5rem 0;position:relative;
+}
+.corrector__head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.corrector__head h3{margin:0;color:var(--accent);font-size:1.1rem}
+.corrector__head .badge{padding:.2rem .6rem;background:var(--accent);color:#fff;border-radius:99px;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.corrector__text{
+  font-family:var(--serif);font-size:1.05rem;line-height:1.8;
+  padding:1.2rem;background:var(--bg-soft);border-radius:10px;margin-bottom:1rem;
+  position:relative;
+}
+.err{
+  background:color-mix(in srgb, #fb7185 35%, transparent);
+  padding:.05em .25em;border-radius:3px;
+  text-decoration:underline wavy #ef4444;text-decoration-thickness:1.5px;
+  cursor:help;
+  position:relative;
+}
+.corr-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.6rem}
+.corr-check{display:flex;align-items:flex-start;gap:.6rem;padding:.7rem;background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:background .15s, border-color .15s}
+.corr-check:has(input:checked){background:color-mix(in srgb, #22c55e 12%, var(--bg-card));border-color:#22c55e}
+.corr-check input{margin-top:.25rem;accent-color:#22c55e}
+.corr-check .label{font-size:.88rem;line-height:1.4}
+.corr-check .label strong{display:block;color:var(--accent);font-size:.82rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.2rem}
+.corr-check:has(input:checked) .label strong{color:#16a34a}
+
+/* WIZARD ENSAYO */
+.wizard{
+  background:var(--bg-card);border:2px solid var(--t6);border-radius:14px;
+  padding:1.5rem;margin:1.5rem 0;
+}
+.wizard__head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.wizard__head h3{margin:0;color:var(--t6);font-size:1.1rem}
+.wizard__head .badge{padding:.2rem .6rem;background:var(--t6);color:#fff;border-radius:99px;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.wizard-radios{position:absolute;opacity:0;pointer-events:none}
+.wizard-nav{display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem;margin-bottom:1rem}
+.wizard-nav label{
+  padding:.6rem .3rem;text-align:center;border-radius:8px;cursor:pointer;
+  background:var(--bg-soft);border:1px solid var(--line);
+  font-size:.75rem;font-weight:600;line-height:1.2;
+  transition:all .15s;user-select:none;
+}
+.wizard-nav label:hover{background:color-mix(in srgb, var(--t6) 8%, var(--bg-card))}
+.wizard-nav label .num{display:block;font-family:var(--mono);font-size:1rem;font-weight:800;color:var(--t6)}
+.wizard-step{display:none;padding:1.2rem;background:var(--bg-soft);border-radius:10px}
+.wizard-step h4{color:var(--t6);margin:0 0 .5rem}
+.wizard-step .example{margin-top:.8rem;padding:.8rem;background:var(--bg-card);border-left:3px solid var(--t6);border-radius:0 6px 6px 0;font-family:var(--serif);font-size:.95rem;font-style:italic}
+.wizard-step .example strong{font-style:normal;color:var(--t6);display:block;margin-bottom:.2rem;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;font-family:var(--sans)}
+
+.wizard:has(#ws1:checked) [for="ws1"],
+.wizard:has(#ws2:checked) [for="ws2"],
+.wizard:has(#ws3:checked) [for="ws3"],
+.wizard:has(#ws4:checked) [for="ws4"],
+.wizard:has(#ws5:checked) [for="ws5"],
+.wizard:has(#ws6:checked) [for="ws6"],
+.wizard:has(#ws7:checked) [for="ws7"]{
+  background:var(--t6);color:#fff;border-color:var(--t6);transform:translateY(-2px);
+  box-shadow:0 4px 10px -3px color-mix(in srgb, var(--t6) 60%, transparent);
+}
+.wizard:has(#ws1:checked) [for="ws1"] .num,
+.wizard:has(#ws2:checked) [for="ws2"] .num,
+.wizard:has(#ws3:checked) [for="ws3"] .num,
+.wizard:has(#ws4:checked) [for="ws4"] .num,
+.wizard:has(#ws5:checked) [for="ws5"] .num,
+.wizard:has(#ws6:checked) [for="ws6"] .num,
+.wizard:has(#ws7:checked) [for="ws7"] .num{color:#fff}
+
+.wizard:has(#ws1:checked) .ws-1,
+.wizard:has(#ws2:checked) .ws-2,
+.wizard:has(#ws3:checked) .ws-3,
+.wizard:has(#ws4:checked) .ws-4,
+.wizard:has(#ws5:checked) .ws-5,
+.wizard:has(#ws6:checked) .ws-6,
+.wizard:has(#ws7:checked) .ws-7{display:block}
+
+/* QUIZ */
+.quiz{display:grid;gap:1rem;margin:1.5rem 0}
+.q{background:var(--bg-card);border:1px solid var(--line);border-radius:12px;padding:1.1rem}
+.q .qtxt{font-weight:700;margin:0 0 .7rem;font-family:var(--serif);font-size:1.05rem}
+.q .opts{display:grid;gap:.4rem}
+.q .opt{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .8rem;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--bg-soft);transition:background .15s, border-color .15s;font-size:.92rem}
+.q .opt:hover{background:color-mix(in srgb, var(--accent) 5%, var(--bg-card))}
+.q .opt input{margin-top:.1rem;accent-color:var(--accent)}
+.q .opt .lbl{flex:1}
+.q .opt.correct:has(input:checked){background:color-mix(in srgb, #22c55e 18%, var(--bg-card));border-color:#22c55e}
+.q .opt.wrong:has(input:checked){background:color-mix(in srgb, #ef4444 18%, var(--bg-card));border-color:#ef4444}
+.q .explain{display:none;margin-top:.7rem;padding:.7rem 1rem;border-radius:8px;font-size:.86rem;line-height:1.5}
+.q:has(.opt.correct input:checked) .explain.ok{display:block;background:color-mix(in srgb,#22c55e 12%,var(--bg-card));border-left:3px solid #22c55e}
+.q:has(.opt.wrong input:checked) .explain.ko{display:block;background:color-mix(in srgb,#ef4444 12%,var(--bg-card));border-left:3px solid #ef4444}
+.q .explain strong{color:var(--accent)}
+
+/* MATCH GAME */
+.match-board{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0}
+.match-col{background:var(--bg-card);border:1px solid var(--line);border-radius:12px;padding:1rem}
+.match-col h4{margin:0 0 .6rem;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--sans)}
+.match-row{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;margin:.4rem 0;background:var(--bg-soft);border:1px solid var(--line);border-radius:8px;font-size:.92rem}
+.match-row input{accent-color:var(--accent)}
+.match:has(.r1 input:checked) .a1,
+.match:has(.r2 input:checked) .a2,
+.match:has(.r3 input:checked) .a3,
+.match:has(.r4 input:checked) .a4,
+.match:has(.r5 input:checked) .a5,
+.match:has(.r6 input:checked) .a6,
+.match:has(.r7 input:checked) .a7,
+.match:has(.r8 input:checked) .a8{background:color-mix(in srgb, #22c55e 18%, var(--bg-card));border-color:#22c55e}
+
+/* FLASHCARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.6rem;margin:1.2rem 0}
+.fc{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fc summary{padding:.9rem 1rem;cursor:pointer;font-weight:700;font-family:var(--serif);font-size:1rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.fc summary::after{content:"+";font-size:1.3rem;color:var(--muted);font-weight:300;transition:transform .2s}
+.fc[open] summary::after{transform:rotate(45deg)}
+.fc summary::-webkit-details-marker{display:none}
+.fc .answer{padding:0 1rem 1rem;color:var(--muted);font-size:.92rem;line-height:1.55;border-top:1px solid var(--line);margin-top:.2rem;padding-top:.8rem}
+.fc.t1 summary{color:var(--t1)}
+.fc.t2 summary{color:var(--t2)}
+.fc.t3 summary{color:var(--t3)}
+.fc.t4 summary{color:var(--t4)}
+.fc.t5 summary{color:var(--t5)}
+.fc.t6 summary{color:var(--t6)}
+
+/* GLOSARIO */
+.glo{margin:1rem 0;background:var(--bg-card);border:1px solid var(--line);border-radius:10px}
+.glo summary{padding:.7rem 1rem;cursor:pointer;font-weight:700;font-family:var(--serif);font-size:.98rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.glo summary::after{content:"↓";color:var(--muted);font-size:.85rem;transition:transform .2s}
+.glo[open] summary::after{transform:rotate(180deg)}
+.glo summary::-webkit-details-marker{display:none}
+.glo .def{padding:0 1rem .8rem;font-size:.92rem;color:var(--muted);line-height:1.55}
+
+/* MNEMOTECNIA */
+.mnemo{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.8rem;margin:1.2rem 0}
+.mnemo-card{
+  background:linear-gradient(135deg, color-mix(in srgb, var(--gold) 12%, var(--bg-card)) 0%, var(--bg-card) 100%);
+  border:1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+  border-radius:14px;padding:1.2rem;position:relative;
+}
+.mnemo-card h5{margin:0 0 .4rem;color:var(--gold);font-family:var(--serif);font-size:1.1rem;font-weight:800}
+.mnemo-card .acro{font-family:var(--mono);font-size:.78rem;letter-spacing:.15em;color:var(--gold);background:color-mix(in srgb, var(--gold) 18%, var(--bg-card));padding:.2rem .5rem;border-radius:4px;display:inline-block;margin-bottom:.4rem}
+.mnemo-card p{margin:.3rem 0;font-size:.92rem;color:var(--muted)}
+
+/* EXAMPLE ESSAYS */
+.example-essay{background:var(--bg-card);border:1px solid var(--line);border-left:5px solid var(--t7);border-radius:0 10px 10px 0;margin:1.2rem 0;overflow:hidden}
+.example-essay summary{padding:1rem 1.2rem;cursor:pointer;font-weight:700;font-family:var(--serif);font-size:1.1rem;color:var(--t7);list-style:none;display:flex;justify-content:space-between;align-items:center}
+.example-essay summary::after{content:"▼";color:var(--muted);font-size:.8rem;transition:transform .2s}
+.example-essay[open] summary::after{transform:rotate(180deg)}
+.example-essay summary::-webkit-details-marker{display:none}
+.example-essay .body{padding:0 1.5rem 1.5rem;font-family:var(--serif);font-size:.98rem;line-height:1.7}
+.example-essay .body h6{font-family:var(--sans);color:var(--t7);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;margin:1.2rem 0 .4rem}
+.example-essay .body p{margin:.5rem 0}
+.example-essay .body ul{margin:.5rem 0;padding-left:1.4rem}
+.example-essay .body li{margin:.3rem 0}
+
+/* COMPARATIVE TABLE */
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;background:var(--bg-card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.cmp th{background:color-mix(in srgb, var(--accent) 10%, var(--bg-card));text-align:left;padding:.7rem 1rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;border-bottom:1px solid var(--line)}
+table.cmp td{padding:.7rem 1rem;border-bottom:1px solid var(--line);font-size:.92rem;vertical-align:top}
+table.cmp tr:last-child td{border-bottom:0}
+table.cmp tr:hover td{background:var(--bg-soft)}
+
+/* TIPS BOX */
+.tip{background:color-mix(in srgb, var(--gold) 8%, var(--bg-card));border-left:4px solid var(--gold);padding:.9rem 1.1rem;margin:1rem 0;border-radius:0 8px 8px 0;font-size:.94rem}
+.tip strong{color:var(--gold)}
+.warn{background:color-mix(in srgb, #ef4444 8%, var(--bg-card));border-left:4px solid #ef4444;padding:.9rem 1.1rem;margin:1rem 0;border-radius:0 8px 8px 0;font-size:.94rem}
+.warn strong{color:#ef4444}
+
+/* TWO COL */
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.twocol .col{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:1rem}
+.twocol .col.do{border-left:4px solid #22c55e}
+.twocol .col.dont{border-left:4px solid #ef4444}
+.twocol .col h4{margin:.1rem 0 .5rem;font-family:var(--sans);font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+.twocol .col.do h4{color:#16a34a}
+.twocol .col.dont h4{color:#dc2626}
+.twocol .col ul{margin:.3rem 0;padding-left:1.3rem;font-size:.9rem}
+.twocol .col li{margin:.25rem 0;color:var(--muted)}
+
+/* FOOTER */
+footer{margin:4rem auto 0;padding:2rem 1.2rem;max-width:1180px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:.85rem}
+footer .made{font-family:var(--serif);font-style:italic;margin:.5rem 0;color:var(--ink)}
+footer .meta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:.6rem;font-size:.78rem}
+
+@media (max-width:760px){
+  .cornell{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  .cornell-cues{border-right:0;border-bottom:1px solid var(--t3)}
+  .essay-struct{grid-template-columns:1fr}
+  .match-board{grid-template-columns:1fr}
+  .wizard-nav{grid-template-columns:repeat(4,1fr)}
+  h1{font-size:2rem}
+  .hero{padding:1.8rem 1.3rem}
+  main{padding:1rem .8rem 4rem}
+}
+
+@media print{
+  body{background:#fff;color:#000;font-size:11pt}
+  .toolbar,.toc,footer{display:none}
+  section{page-break-inside:avoid;margin:1rem 0}
+  details[open],details{page-break-inside:avoid}
+  details:not([open]) > *:not(summary){display:block !important}
+  .fc[open] summary::after,.fc summary::after{display:none}
+  .hero::before{display:none}
+  .corrector,.wizard{break-inside:avoid}
+  .wizard-step{display:block !important;margin-bottom:.5rem}
+  .wizard-nav{display:none}
+}
+</style>
+</head>
+<body>
+<input type="checkbox" id="dm" class="darkmode-input">
+<input type="checkbox" id="fm" class="focusmode-input">
+
+<header class="toolbar">
+  <div class="brand">Demo · claude-students<small>HTML generado · Redacción Académica</small></div>
+  <div class="grow"></div>
+  <label for="dm" class="btn">🌓 Modo oscuro</label>
+  <label for="fm" class="btn">🎯 Modo focus</label>
+  <a href="#quiz" class="btn" style="text-decoration:none;color:var(--ink)">📝 Quiz</a>
+</header>
+
+<nav class="toc">
+  <a href="#concepto" class="t1">1 · Concepto</a>
+  <a href="#subrayado" class="t2">2 · Subrayado</a>
+  <a href="#apuntes" class="t3">3 · Apuntes</a>
+  <a href="#esquema" class="t4">4 · Esquema</a>
+  <a href="#resumen" class="t5">5 · Resumen</a>
+  <a href="#ensayo" class="t6">6 · Ensayo</a>
+  <a href="#corrector" class="t6">🔧 Corrector</a>
+  <a href="#wizard" class="t6">🧙 Wizard 7 pasos</a>
+  <a href="#quiz" class="t1">📝 Quiz</a>
+  <a href="#match" class="t3">🎯 Match</a>
+  <a href="#flashcards" class="t5">🃏 Flashcards</a>
+  <a href="#ejemplos" class="t7">📄 Ejemplos</a>
+  <a href="#glosario" class="t4">📚 Glosario</a>
+  <a href="#mnemo" style="border-bottom:3px solid var(--gold)">🧠 Mnemotecnia</a>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="kicker">Demo · claude-students · Tema único</span>
+  <h1>Redacción de Textos Académicos</h1>
+  <p class="lead">Las técnicas que convierten una idea bruta en un escrito universitario: objetivo, formal, verificable. Manual para llegar al acumulativo con todo afilado.</p>
+  <div class="meta">
+    <span>📚 2 fuentes · materiales de clase</span>
+    <span>📄 23 páginas procesadas</span>
+    <span>🎓 Para cualquier carrera universitaria</span>
+  </div>
+  <div class="tldr">
+    <h4>TL;DR para el acumulativo</h4>
+    <p>La redacción académica busca <strong>comunicar conocimiento de forma objetiva, rigurosa y verificable</strong> — no entretener. Sus 5 características son <em>objetividad, formalidad, precisión, verificabilidad y cohesión-coherencia</em>. Las 4 herramientas que te llevan del texto al ensayo son: <strong>subrayar → tomar apuntes → esquema → resumen</strong>. El ensayo se redacta en 7 pasos y tiene 3 partes: <em>introducción, cuerpo y conclusión</em>.</p>
+  </div>
+</div>
+
+<!-- 1. CONCEPTO -->
+<section id="concepto" class="t1">
+  <span class="kicker">1 · Fundamentos</span>
+  <h2>¿Qué es la redacción académica?</h2>
+  <p class="lead">Es el conjunto de <strong>estrategias, normas y habilidades</strong> que se utilizan para producir textos propios del ámbito universitario, científico o de investigación: ensayos, tesis, monografías, artículos científicos.</p>
+
+  <h3>A diferencia de la redacción literaria…</h3>
+  <p>…su objetivo no es entretener ni conmover, sino <strong>comunicar un conocimiento especializado de forma objetiva, rigurosa y verificable</strong>. La emoción se subordina a la evidencia; el adorno cede el paso al argumento.</p>
+
+  <h4>Por qué importa (no es capricho del profesor)</h4>
+  <div class="cards">
+    <div class="card t1">
+      <h4>Validez científica</h4>
+      <p class="big">Tus ideas se toman en serio</p>
+      <p>Solo cuando se presentan con rigor, otros investigadores pueden citarte, debatirte o construir sobre tu trabajo.</p>
+    </div>
+    <div class="card t1">
+      <h4>Claridad y difusión</h4>
+      <p class="big">Te entienden sin doble lectura</p>
+      <p>Otros investigadores y estudiantes deben poder reproducir tu razonamiento sin tener que adivinar lo que quisiste decir.</p>
+    </div>
+    <div class="card t1">
+      <h4>Evita el plagio</h4>
+      <p class="big">Citar = honestidad</p>
+      <p>Enseña a referenciar correctamente la fuente. La honestidad intelectual es la moneda de la academia.</p>
+    </div>
+    <div class="card t1">
+      <h4>Pensamiento crítico</h4>
+      <p class="big">Estructura tu argumento</p>
+      <p>Te obliga a ordenar pensamientos y evaluar la lógica de lo que afirmas. Escribir bien es pensar bien.</p>
+    </div>
+  </div>
+
+  <h3>Las 5 características principales</h3>
+  <div class="char-grid">
+    <div class="char"><span class="icon">⚖</span><strong>Objetividad</strong><small>Se centra en datos, hechos y evidencia. Se prefiere <em>"Se analizó"</em> en lugar de <em>"Yo analicé"</em>.</small></div>
+    <div class="char"><span class="icon">🎓</span><strong>Formalidad</strong><small>Lenguaje culto, preciso y técnico. Sin jergas, modismos ni abreviaturas informales.</small></div>
+    <div class="char"><span class="icon">🎯</span><strong>Precisión</strong><small>Va al grano. Usa las palabras exactas. En vez de <em>"salió un poco mal"</em> → <em>"mostró un margen de error del 15%"</em>.</small></div>
+    <div class="char"><span class="icon">🔍</span><strong>Verificabilidad</strong><small>Todo lo que se afirma y que no sea de autoría propia debe poder comprobarse mediante citas y referencias.</small></div>
+    <div class="char"><span class="icon">🧩</span><strong>Cohesión y coherencia</strong><small>Las ideas fluyen lógicamente. Cada párrafo se conecta con el anterior mediante conectores adecuados.</small></div>
+  </div>
+
+  <h3>Los 4 elementos clave de la pieza académica</h3>
+  <div class="cards">
+    <div class="card t1">
+      <h4>A. La estructura (el esqueleto)</h4>
+      <p>Sigue una arquitectura rígida pero efectiva: <strong>introducción</strong> (tema + tesis), <strong>desarrollo/cuerpo</strong> (argumentos con evidencia), <strong>conclusión</strong> (síntesis + futuras líneas).</p>
+    </div>
+    <div class="card t1">
+      <h4>B. El aparato crítico (citas y referencias)</h4>
+      <p>El sistema que sostiene la validez del texto: <strong>citas textuales o parafraseadas</strong> mencionando a los autores, y <strong>bibliografía</strong> al final (APA, Vancouver, Harvard, Chicago).</p>
+    </div>
+    <div class="card t1">
+      <h4>C. El estilo y tono</h4>
+      <p>Tercera persona del singular o el plural mayestático (<em>"Se observa…", "Observamos…"</em>). Conectores lógicos correctos: <em>"por lo tanto", "en consecuencia", "no obstante"</em>.</p>
+    </div>
+    <div class="card t1">
+      <h4>D. El proceso de revisión</h4>
+      <p>La carpintería del texto. Planificar → escribir → revisar. Hacer un mapa de ideas antes de escribir es la regla del oro.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2. SUBRAYADO -->
+<section id="subrayado" class="t2">
+  <span class="kicker">2 · Herramienta 1</span>
+  <h2>El Subrayado</h2>
+  <p class="lead">Destacar, mediante líneas, rayas o colores, las <strong>ideas fraseológicas clave y los conceptos esenciales</strong> de un texto. Su propósito es separar lo que es <em>verdaderamente importante</em> de lo prescindible.</p>
+
+  <div class="tip">
+    <strong>La regla de oro:</strong> al terminar el subrayado, el texto debe seguir teniendo sentido completo — como si fuera un telegrama. Si para entender la idea necesitas leer lo no subrayado, la técnica no se aplicó correctamente.
+  </div>
+
+  <h3>El error más común</h3>
+  <p>Pensar que subrayar es <em>"resaltar texto para leerlo después"</em>. El verdadero objetivo es realizar un <strong>análisis crítico del texto en tiempo real</strong>: te obliga a decidir qué palabra es clave y cuál no, así estás procesando la información activamente.</p>
+
+  <h3>Los 3 tipos de subrayado</h3>
+  <div class="cards">
+    <div class="card t2">
+      <h4>Lineal</h4>
+      <p class="big">Trazo bajo las palabras</p>
+      <p>Líneas dobles bajo las ideas principales, líneas simples bajo las secundarias, líneas discontinuas para datos o fechas.</p>
+    </div>
+    <div class="card t2">
+      <h4>Estructural (notas al margen)</h4>
+      <p class="big">Etiquetas en el borde</p>
+      <p>En el margen izquierdo escribes el sintetón ("Definición", "Origen", "Consecuencias", "Ejemplo 1"). Esto te da la estructura del esquema sin esfuerzo.</p>
+    </div>
+    <div class="card t2">
+      <h4>De realce o signos</h4>
+      <p class="big">Marcas en el margen derecho</p>
+      <p>Para destacar dudas (?), algo no entendido (*), o algo muy importante. <strong>EX</strong> si parece pregunta de examen.</p>
+    </div>
+  </div>
+
+  <h3>El código de colores: máximo 3 o 4</h3>
+  <p>No uses un solo color para todo. Asigna un significado a cada resaltador para que tu cerebro organice la información visualmente:</p>
+  <div class="colors-grid">
+    <div class="color-swatch amarillo">
+      <h5>Color 1 · Amarillo</h5>
+      <p>Para títulos, subtítulos y <span class="demo-text">conceptos principales</span> — la idea madre de cada párrafo.</p>
+    </div>
+    <div class="color-swatch verde">
+      <h5>Color 2 · Verde o Azul</h5>
+      <p>Para <span class="demo-text">ideas secundarias</span> o explicaciones que sostienen al concepto principal.</p>
+    </div>
+    <div class="color-swatch rosa">
+      <h5>Color 3 · Rosa o Naranja</h5>
+      <p>Para <span class="demo-text">datos específicos</span>: fechas, autores, porcentajes, palabras técnicas.</p>
+    </div>
+  </div>
+
+  <h3>Los 5 pasos del subrayado profesional</h3>
+  <div class="flow">
+    <div class="step"><span class="num">1</span><h4>NO subrayes en la primera lectura</h4><p>Lectura exploratoria primero. Solo así sabrás qué es importante.</p></div>
+    <div class="step"><span class="num">2</span><h4>Segunda lectura: párrafo por párrafo</h4><p>Pregúntate: <em>¿qué me quiso decir el autor aquí?</em> Lo que responda a esa pregunta es lo que subrayas.</p></div>
+    <div class="step"><span class="num">3</span><h4>Solo palabras clave o frases cortas</h4><p>Sin verbos, conectores o artículos. Subraya sustantivos y conceptos clave de modo que mantenga sentido telegrama.</p></div>
+    <div class="step"><span class="num">4</span><h4>Aplica el código de colores</h4><p>Tres como mínimo, cuatro como máximo. Más es ruido visual.</p></div>
+    <div class="step"><span class="num">5</span><h4>Apóyate en anotaciones al margen</h4><p>Pequeñas palabras-clave en lápiz: <em>"Definición", "Causa", "Pregunta de examen"</em>.</p></div>
+  </div>
+
+  <h3>Ventajas de hacerlo bien</h3>
+  <div class="twocol">
+    <div class="col do">
+      <h4>✓ Lo que ganas</h4>
+      <ul>
+        <li>Atención y concentración activas mientras lees</li>
+        <li>Ahorras tiempo en los repasos (vas directo a lo esencial)</li>
+        <li>Facilita el estudio posterior: esquema y resumen casi salen solos</li>
+        <li>Desarrolla la capacidad de análisis y síntesis</li>
+        <li>Mejora la memoria visual (asocias conceptos a colores)</li>
+      </ul>
+    </div>
+    <div class="col dont">
+      <h4>✗ Errores a evitar</h4>
+      <ul>
+        <li>Subrayar en la primera lectura (todo te parecerá importante)</li>
+        <li>Subrayar oraciones completas con verbos y artículos</li>
+        <li>Usar un solo color para todo</li>
+        <li>Usar más de 4 colores (sobrecarga visual)</li>
+        <li>Subrayar en libros ajenos sin permiso (usa lápiz suave)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3. APUNTES -->
+<section id="apuntes" class="t3">
+  <span class="kicker">3 · Herramienta 2</span>
+  <h2>Tomar Apuntes</h2>
+  <p class="lead">Tomar apuntes no es algo que solo ocurra durante la clase o la lectura: <strong>requiere tres momentos clave</strong>. Bien hechos, son tu mejor aliado al estudiar.</p>
+
+  <h3>Las 3 fases del proceso</h3>
+  <div class="flow">
+    <div class="step"><span class="num">1</span><h4>ANTES · Preparación</h4><p>Échale un vistazo rápido al tema que se va a tratar. Mira el guion o índice. Tu cerebro identifica las ideas importantes y las nuevas serán más limpias.</p></div>
+    <div class="step"><span class="num">2</span><h4>DURANTE · Escucha activa y registro</h4><p>Atención a las señales del profesor (<em>"Esto es fundamental", "En conclusión…"</em>) — anótalo de inmediato. Escribe en tu propio sistema de abreviaturas.</p></div>
+    <div class="step"><span class="num">3</span><h4>DESPUÉS · Revisión y edición</h4><p>Es la fase que casi todo el mundo se salta. Unas horas después de la clase o el día siguiente, revisa tus apuntes: corrige palabras confusas, añade aclaraciones, resalta ideas clave.</p></div>
+  </div>
+
+  <h3>Los 3 métodos estructurados de tomar notas</h3>
+
+  <h4>A. Método Cornell · <em>el más recomendado científicamente</em></h4>
+  <p>Divide tu hoja de papel en tres secciones:</p>
+  <div class="cornell">
+    <div class="cornell-cell cornell-cues">
+      <h5>Columna izquierda (más angosta) · DESPUÉS de clase</h5>
+      <p>Aquí escribes preguntas clave, palabras clave o conceptos que te sirvan para guiar el repaso.</p>
+      <ul>
+        <li>¿Qué es?</li>
+        <li>Ejemplo de</li>
+        <li>Causa de</li>
+      </ul>
+    </div>
+    <div class="cornell-cell cornell-notes">
+      <h5>Columna derecha (más ancha) · DURANTE la clase</h5>
+      <p>Toma tus notas normales en clase usando frases cortas, viñetas y abreviaturas. Cada concepto en su línea.</p>
+      <ul>
+        <li>• Idea principal del profesor</li>
+        <li>• Sub-idea con ejemplo</li>
+        <li>• Dato verificable</li>
+      </ul>
+    </div>
+    <div class="cornell-cell cornell-summary">
+      <h5>Margen inferior (bloque horizontal abajo) · DESPUÉS de clase</h5>
+      <p>Resumen en 3 o 4 líneas con tus propias palabras de TODO lo escrito en esa página.</p>
+    </div>
+  </div>
+
+  <h4>B. Método de Esquema u Outline · <em>para clases muy estructuradas</em></h4>
+  <p>Utiliza sangrías progresivas para mostrar la importancia y jerarquía de las ideas:</p>
+  <div class="outline-demo">
+    <div class="l1">I. Idea Principal 1</div>
+    <div class="l2">A. Idea secundaria A</div>
+    <div class="l3">1. Ejemplo 1</div>
+    <div class="l4">a. Detalle del ejemplo</div>
+    <div class="l2">B. Idea secundaria B</div>
+    <div class="l1">II. Idea Principal 2</div>
+    <div class="l2">A. Idea secundaria A</div>
+  </div>
+
+  <h4>C. Mapas mentales · <em>si eres una persona muy visual</em></h4>
+  <p>Colocas el tema central en medio de la hoja y extiendes ramas con flechas, dibujos, colores y palabras clave hacia los lados. Es excelente para materias donde los conceptos se interconectan.</p>
+
+  <div class="tip">
+    <strong>Consejo práctico:</strong> usa tus propias palabras. No anotes textualmente lo que dice el profesor. Si lo procesas en el momento, lo entendiste; si solo lo copias, te queda como ruido.
+  </div>
+</section>
+
+<!-- 4. ESQUEMA -->
+<section id="esquema" class="t4">
+  <span class="kicker">4 · Herramienta 3</span>
+  <h2>El Esquema</h2>
+  <p class="lead">La <strong>representación gráfica y estructurada</strong> de las ideas principales, secundarias y los detalles de un texto o tema. Funciona como el "esqueleto" o mapa-guía que te permite, de una sola golpe de vista, captar la jerarquía y dependencia de las ideas.</p>
+
+  <h3>Características principales</h3>
+  <div class="cards">
+    <div class="card t4">
+      <h4>Jerarquización</h4>
+      <p>Organiza la información de lo más general (título / idea central) a lo más específico (detalles / ejemplos).</p>
+    </div>
+    <div class="card t4">
+      <h4>Brevedad</h4>
+      <p>Sustituye párrafos por conceptos clave. Frases cortas, fechas, llaves o números para conectar.</p>
+    </div>
+    <div class="card t4">
+      <h4>Visualización</h4>
+      <p>Permite captar la estructura del tema con una sola mirada. Imagen + estructura = memoria larga.</p>
+    </div>
+  </div>
+
+  <h3>Visualización de la jerarquía</h3>
+  <div class="hierarchy">
+    <div class="level l-1">Idea central / Título</div>
+    <div class="level l-2">Idea principal A · B · C</div>
+    <div class="level l-3">Idea secundaria 1 · 2</div>
+    <div class="level l-4">Detalle / Ejemplo</div>
+  </div>
+
+  <h3>División clásica del esquema</h3>
+  <div class="schema-diagram">
+    <div class="schema-tree">
+      <div class="main">I. Introducción</div>
+      <div class="branch">
+        <div class="leaf">A. Contextualización o antecedentes</div>
+        <div class="leaf">B. Delimitación del problema (¿cuál es la pregunta o situación?)</div>
+        <div class="leaf">C. Justificación u objetivos (por qué importa)</div>
+        <div class="leaf">D. Tesis o postura (la idea central)</div>
+      </div>
+      <div class="main">II. Cuerpo o Desarrollo</div>
+      <div class="branch">
+        <div class="leaf">A. Bloque Temático 1 (idea principal 1)</div>
+        <div class="leaf" style="margin-left:1.5rem">1. Idea secundaria (sustento teórico o empírico)</div>
+        <div class="leaf" style="margin-left:1.5rem">2. Idea secundaria (ejemplo o datos estadísticos)</div>
+        <div class="leaf">B. Bloque Temático 2 (idea principal 2)</div>
+        <div class="leaf" style="margin-left:1.5rem">1. Idea secundaria (contraste con otros autores)</div>
+        <div class="leaf" style="margin-left:1.5rem">2. Idea secundaria (análisis propio)</div>
+      </div>
+      <div class="main">III. Conclusión</div>
+      <div class="branch">
+        <div class="leaf">A. Recapitulación de la tesis</div>
+        <div class="leaf">B. Síntesis de los hallazgos principales</div>
+        <div class="leaf">C. Reflexión final o proyecciones (preguntas para futuras investigaciones)</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Importancia: 5 razones para no saltártelo</h3>
+  <div class="cards">
+    <div class="card t4"><h4>1</h4><p class="big">Facilita comprensión y análisis</p><p>Te obliga a leer, seleccionar y conectar lo realmente importante.</p></div>
+    <div class="card t4"><h4>2</h4><p class="big">Ahorra tiempo en repaso</p><p>50 páginas de un libro pueden resumirse en 3-4 páginas — repasable en minutos.</p></div>
+    <div class="card t4"><h4>3</h4><p class="big">Potencia la memoria visual</p><p>El cerebro recuerda imágenes y estructuras mejor que bloques uniformes de texto.</p></div>
+    <div class="card t4"><h4>4</h4><p class="big">Desarrolla la síntesis</p><p>Habilidad blanda crucial — soft skill que vale en lo académico y lo profesional.</p></div>
+    <div class="card t4"><h4>5</h4><p class="big">Es guía de redacción</p><p>Antes de un ensayo, el esquema es el esqueleto. Te aseguras de no olvidar ningún punto.</p></div>
+  </div>
+</section>
+
+<!-- 5. RESUMEN -->
+<section id="resumen" class="t5">
+  <span class="kicker">5 · Herramienta 4</span>
+  <h2>El Resumen o Síntesis</h2>
+  <p class="lead">El resumen es <strong>expresar en forma breve, con las palabras del autor, el contenido de un tema</strong>, conservando la misma estructura. No mezclas opiniones; transcribes lo esencial reduciendo el volumen.</p>
+
+  <div class="warn">
+    <strong>Ojo con la confusión:</strong> aunque en la teoría hay distinción entre <em>resumen</em> (palabras del autor) y <em>síntesis</em> (palabras propias), en la práctica universitaria suelen tratarse como iguales. Lo importante es que <strong>no mezcles tu opinión</strong> y mantengas la estructura del original.
+  </div>
+
+  <h3>Las 6 preguntas que estructuran un resumen</h3>
+  <p>Para resumir cualquier libro, conferencia o tema, contesta a estas seis preguntas clave. <strong>El <em>"¿Qué?"</em> es la fundamental</strong> — es el centro del discurso.</p>
+  <div class="q6-grid">
+    <div class="q6"><span class="word">¿Qué?</span><span class="pos">la idea central</span><small>El argumento principal, la tesis, la noticia.</small></div>
+    <div class="q6"><span class="word">¿Quién?</span><span class="pos">el autor / actor</span><small>Quién lo dijo, quién lo hizo, quién lo descubrió.</small></div>
+    <div class="q6"><span class="word">¿Cómo?</span><span class="pos">el método</span><small>De qué manera, con qué procedimiento, en qué condiciones.</small></div>
+    <div class="q6"><span class="word">¿Cuándo?</span><span class="pos">el tiempo</span><small>Fecha de la disertación, época histórica, momento.</small></div>
+    <div class="q6"><span class="word">¿Dónde?</span><span class="pos">el lugar</span><small>Lugar de la conferencia, contexto geográfico.</small></div>
+    <div class="q6"><span class="word">¿Por qué?</span><span class="pos">la motivación</span><small>Causa que motiva la disertación o publicación.</small></div>
+  </div>
+
+  <h3>Los 13 pasos para elaborar un resumen impecable</h3>
+  <div class="steps-13">
+    <p><span class="step-num">1</span><strong>Comprenda.</strong> Una lectura general del tema que va a estudiar.</p>
+    <p><span class="step-num">2</span><strong>Capte la idea principal.</strong> Averigüe cuáles son los capítulos o temas más importantes del texto que va a resumir.</p>
+    <p><span class="step-num">3</span><strong>Seleccione.</strong> Subraye las ideas que a su juicio considere más importantes.</p>
+    <p><span class="step-num">4</span><strong>Enliste.</strong> Enliste las ideas principales y las secundarias, y establezca una relación entre ellas.</p>
+    <p><span class="step-num">5</span><strong>Compare.</strong> Escriba un primer borrador para que haga una revisión del trabajo.</p>
+    <p><span class="step-num">6</span><strong>Rectifique.</strong> Haga las correcciones necesarias para que el trabajo este listo y pueda realizar la redacción final. Elimine las palabras y frases innecesarias.</p>
+    <p><span class="step-num">7</span><strong>No generalice.</strong> Al redactar sus notas procure no generalizar.</p>
+    <p><span class="step-num">8</span><strong>Ordene su resumen.</strong> Procure seguir el orden de exposición del autor.</p>
+    <p><span class="step-num">9</span><strong>No anote ideas propias.</strong> Nunca al realizar un resumen anote sus ideas, reflexiones, juicios u opiniones personales. Recuerde que solo está condensando las ideas y pensamientos del autor (al final puede agregar un apartado de "conclusiones personales").</p>
+    <p><span class="step-num">10</span><strong>En cuanto a la extensión del resumen.</strong> Solo podemos decir que depende de la importancia del tema y del lugar en que haya de publicarse. Dicha extensión será mayor o menor según la finalidad.</p>
+    <p><span class="step-num">11</span><strong>No se debe plantear un interrogante al lector sin resolverlo.</strong> En vez de escribir <em>"Fulano disertó acerca de tal o cual cosa"</em>, conviene resolver el problema diciendo lo que el autor afirmó acerca del tema.</p>
+    <p><span class="step-num">12</span><strong>Procure captar su atención desde las primeras líneas.</strong> Llevando a ellas la idea principal del tema que está resumiendo.</p>
+    <p><span class="step-num">13</span><strong>Realice sus resúmenes respetando las palabras del autor.</strong> Si tiene comentarios, opiniones, críticas o reflexiones personales, agréguelos al final del resumen a manera de "conclusiones personales".</p>
+  </div>
+</section>
+
+<!-- 6. ENSAYO -->
+<section id="ensayo" class="t6">
+  <span class="kicker">6 · La pieza maestra</span>
+  <h2>El Ensayo</h2>
+  <p class="lead">El ensayo es <strong>el análisis y la explicación profunda</strong> que se hace de un tema determinado. Todo puede ser tratado en un ensayo — desde lo más trascendental hasta lo más frívolo. Aquí reaccionas con tus prejuicios, pasiones e inteligencia.</p>
+
+  <h3>Definición operativa</h3>
+  <p>Un escrito generalmente breve, donde el estudiante <strong>expone con profundidad</strong> la interpretación personal del autor o del tema tratado. El diccionario lo define como "escrito generalmente breve". Lo importante: <em>es un género literario moderno</em>, en el que una persona reacciona ingeniosamente y sin prejuicios.</p>
+
+  <h3>Las 3 clases de ensayo</h3>
+  <div class="essay-classes">
+    <div class="essay-class">
+      <h4>1 · Ensayo de exposición de ideas personales</h4>
+      <div class="areas">religiosas · ideológicas · económicas · etc.</div>
+      <p>Expone con profundidad la postura personal del autor sobre un tema. Es el más común en clase.</p>
+    </div>
+    <div class="essay-class">
+      <h4>2 · Ensayo de crítica</h4>
+      <div class="areas">crítica al ser humano · artística · política · etc.</div>
+      <p>Su función es criticar cualquier obra de carácter humano. Argumenta a favor o en contra con evidencia.</p>
+    </div>
+    <div class="essay-class">
+      <h4>3 · Ensayo de creación</h4>
+      <div class="areas">donde la imaginación y la sensibilidad del autor crean relatos ficticios</div>
+      <p>Más cercano a lo literario. Permite expresar ideas a través de narrativa creativa.</p>
+    </div>
+  </div>
+
+  <h3>La estructura: 3 partes obligatorias</h3>
+  <div class="essay-struct">
+    <div class="part">
+      <h4>1. Introducción</h4>
+      <p><strong>Presentación del tema:</strong> contexto breve.</p>
+      <p><strong>Tesis:</strong> declaración clara de la posición o el argumento principal del ensayo. <em>Esta es la idea central que se desarrollará a lo largo del texto.</em></p>
+    </div>
+    <div class="part">
+      <h4>2. Cuerpo</h4>
+      <p>Varios párrafos, cada uno con una función específica:</p>
+      <p>· <strong>Argumentos:</strong> respaldan la tesis</p>
+      <p>· <strong>Evidencia:</strong> datos, ejemplos, citas</p>
+      <p>· <strong>Análisis:</strong> cómo respalda a la tesis</p>
+      <p>· <strong>Transiciones:</strong> frases de enlace entre párrafos para mantener fluidez y cohesión</p>
+    </div>
+    <div class="part">
+      <h4>3. Conclusión</h4>
+      <p><strong>Resumen de argumentos</strong> principales.</p>
+      <p><strong>Reafirmación de la tesis</strong> a la luz de lo discutido.</p>
+      <p><strong>Reflexión final:</strong> llamada a la acción o líneas futuras.</p>
+    </div>
+  </div>
+
+  <h3>Los 7 pasos para redactar un ensayo (esto te van a preguntar)</h3>
+  <p>Empléalos <strong>en orden</strong>. Si te saltas uno, el ensayo se nota apresurado. Lánzate al constructor visual de abajo para ver cada paso con ejemplo concreto.</p>
+  <ol style="font-family:var(--serif);font-size:1.05rem;line-height:1.9;padding-left:1.4rem">
+    <li><strong>Identificar el tema</strong> que se va a desarrollar.</li>
+    <li><strong>Liste las ideas</strong> más importantes del tema a desarrollar.</li>
+    <li><strong>Formulación de ideas:</strong> piense, investigue, descubra qué dice cada autor.</li>
+    <li><strong>Redactar el primer borrador.</strong> Generalmente se requieren varios borradores antes de la versión final.</li>
+    <li><strong>Examinar los errores</strong> que contenga el borrador (lógicos, ortográficos, de contenido).</li>
+    <li><strong>Corregir el borrador.</strong> Eliminar muletillas, mejorar transiciones, ajustar argumentos.</li>
+    <li><strong>Redacción final.</strong> Versión limpia, formateada y lista para entregar.</li>
+  </ol>
+</section>
+
+<!-- CORRECTOR INTERACTIVO -->
+<section id="corrector">
+  <span class="kicker" style="background:var(--accent);color:#fff">🔧 Ejercicio interactivo</span>
+  <h2 style="color:var(--accent)">Corrector de errores académicos</h2>
+  <p class="lead">Lee el siguiente párrafo escrito por un estudiante. Tiene <strong>varios errores típicos</strong> de la redacción académica. <em>Marca cada checkbox que reconozcas</em> y verás si tu diagnóstico es correcto.</p>
+
+  <div class="corrector">
+    <div class="corrector__head">
+      <h3>📝 Párrafo defectuoso · ejemplo</h3>
+      <span class="badge">8 errores</span>
+    </div>
+    <div class="corrector__text">
+      <span class="err" title="Primera persona en académico">Yo pienso que</span> el marketing digital <span class="err" title="Muletilla / valoración subjetiva">es súper importante</span> en la actualidad. <span class="err" title="Cita sin fuente">Según muchos estudios</span>, las empresas que no lo usan <span class="err" title="Generalización absoluta">siempre fracasan</span>. <span class="err" title="Coloquialismo">Echándole un ojo</span> a las marcas grandes uno se da cuenta que <span class="err" title="Imprecisión cuantitativa">casi todo el mundo</span> está en redes sociales. <span class="err" title="Voseo argentino / informal">Vos podés ver</span> los resultados <span class="err" title="Falta de conector lógico">y por ende</span> deberías invertir en eso ya.
+    </div>
+    <div class="corr-options">
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Primera persona del singular</strong>"Yo pienso que" → debe ser impersonal: <em>"Se considera que…"</em> o <em>"Es posible afirmar que…"</em></span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Muletilla / valoración subjetiva</strong>"súper importante" → sin medida ni fuente. Mejor: <em>"representa un canal estratégico (Kotler &amp; Keller, 2016)"</em></span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Cita sin fuente verificable</strong>"Según muchos estudios" → ¿cuáles? Sin referencia es un acto de fe. Cita autor + año + página.</span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Generalización absoluta</strong>"siempre fracasan" → la academia no tolera absolutos sin evidencia. Usa <em>"tienden a perder participación de mercado"</em>.</span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Coloquialismo / jerga</strong>"Echándole un ojo" → expresión informal. Académico: <em>"Al analizar…"</em> o <em>"Un examen de…"</em></span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Imprecisión cuantitativa</strong>"casi todo el mundo" → sin dato. Mejor: <em>"el 78% de las empresas Fortune 500 (Statista, 2024)"</em></span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Voseo / segunda persona informal</strong>"Vos podés ver" → rompe la objetividad. Usa tercera persona: <em>"se observa que…"</em></span></label>
+      <label class="corr-check"><input type="checkbox"><span class="label"><strong>Conector redundante</strong>"y por ende" → "y" + "por ende" repite la idea de consecuencia. Usa solo uno: <em>"Por consiguiente,…"</em></span></label>
+    </div>
+    <div class="tip" style="margin-top:1rem">
+      <strong>Versión corregida:</strong> <em>"Es posible afirmar que el marketing digital representa un canal estratégico (Kotler &amp; Keller, 2016) en el entorno empresarial contemporáneo. Según un estudio de Statista (2024), el 78% de las empresas Fortune 500 mantiene presencia activa en redes sociales y tienden a perder participación de mercado las organizaciones que no integran estas plataformas. Al analizar las marcas líderes, se observa una correlación directa entre inversión digital y crecimiento; por consiguiente, la integración del marketing digital se presenta como una decisión estratégica relevante."</em>
+    </div>
+  </div>
+</section>
+
+<!-- WIZARD ENSAYO 7 PASOS -->
+<section id="wizard">
+  <span class="kicker" style="background:var(--t6);color:#fff">🧙 Constructor visual</span>
+  <h2 style="color:var(--t6)">Los 7 pasos del ensayo · paso a paso</h2>
+  <p class="lead">Cada uno de los 7 pasos con ejemplo concreto trabajando sobre un mismo tema (<em>"El impacto de la inteligencia artificial en el marketing"</em>). <strong>Haz click en cada paso</strong> para ver qué hacer.</p>
+
+  <div class="wizard">
+    <div class="wizard__head">
+      <h3>Caso práctico de ensayo</h3>
+      <span class="badge">7 pasos</span>
+    </div>
+    <input type="radio" name="ws" id="ws1" class="wizard-radios" checked>
+    <input type="radio" name="ws" id="ws2" class="wizard-radios">
+    <input type="radio" name="ws" id="ws3" class="wizard-radios">
+    <input type="radio" name="ws" id="ws4" class="wizard-radios">
+    <input type="radio" name="ws" id="ws5" class="wizard-radios">
+    <input type="radio" name="ws" id="ws6" class="wizard-radios">
+    <input type="radio" name="ws" id="ws7" class="wizard-radios">
+
+    <div class="wizard-nav">
+      <label for="ws1"><span class="num">1</span>Identificar tema</label>
+      <label for="ws2"><span class="num">2</span>Listar ideas</label>
+      <label for="ws3"><span class="num">3</span>Formular ideas</label>
+      <label for="ws4"><span class="num">4</span>Borrador 1</label>
+      <label for="ws5"><span class="num">5</span>Examinar errores</label>
+      <label for="ws6"><span class="num">6</span>Corregir</label>
+      <label for="ws7"><span class="num">7</span>Redacción final</label>
+    </div>
+
+    <div class="wizard-step ws-1">
+      <h4>Paso 1 · Identificar el tema</h4>
+      <p>Define con precisión <strong>qué</strong> vas a desarrollar. Un tema demasiado amplio es ingobernable; uno muy específico se queda corto. Busca el punto medio.</p>
+      <p><strong>Preguntas a contestarte:</strong> ¿Hay suficiente material para llenar 3-5 páginas? ¿Tengo una postura clara? ¿Le interesa a alguien además de a mí?</p>
+      <div class="example">
+        <strong>Ejemplo</strong>
+        Tema demasiado amplio: <em>"El marketing"</em><br>
+        Tema demasiado específico: <em>"La paleta de colores de Coca-Cola en Q3 2024"</em><br>
+        Tema ideal: <em>"El impacto de la inteligencia artificial en las decisiones de marketing digital de las empresas medianas (2020-2025)"</em>
+      </div>
+    </div>
+
+    <div class="wizard-step ws-2">
+      <h4>Paso 2 · Liste las ideas más importantes</h4>
+      <p>Una <strong>lluvia de ideas en bruto</strong> en papel. Aún no se trata de ordenar — solo escribir todo lo que se te ocurra sobre el tema. No te preocupes por el orden, solo por la cantidad.</p>
+      <div class="example">
+        <strong>Lista cruda</strong>
+        · IA generativa para crear copy<br>
+        · Algoritmos de recomendación (Netflix, Spotify)<br>
+        · Chatbots de atención<br>
+        · Hiper-personalización<br>
+        · Riesgos: sesgo, privacidad<br>
+        · Casos: Coca-Cola usa IA en campañas<br>
+        · Costo de implementación<br>
+        · ROI medible
+      </div>
+    </div>
+
+    <div class="wizard-step ws-3">
+      <h4>Paso 3 · Formulación de ideas</h4>
+      <p>Para cada idea de la lista, <strong>investiga y desarrolla</strong>: ¿qué dicen los autores? ¿qué datos hay? ¿qué casos hay? Aquí se convierte la lista en un mapa con sustento.</p>
+      <div class="example">
+        <strong>Idea desarrollada</strong>
+        <em>Hiper-personalización (Kotler &amp; Keller, 2016):</em> "La IA permite analizar microcomportamientos y entregar mensajes a medida en tiempo real." <strong>Caso:</strong> Amazon genera el 35% de sus ingresos a través de su motor de recomendaciones (McKinsey, 2023).
+      </div>
+    </div>
+
+    <div class="wizard-step ws-4">
+      <h4>Paso 4 · Redactar el primer borrador</h4>
+      <p>Escribir <strong>de corrido, sin frenar a corregir</strong>. Saca todas las ideas en el papel siguiendo la estructura intro-cuerpo-conclusión. Deja amplios márgenes y doble espacio para anotar correcciones después.</p>
+      <div class="example">
+        <strong>Fragmento del primer borrador</strong>
+        <em>"La inteligencia artificial ya esta cambiando todo en marketing. Las empresas la usan para personalizar y vender mas. Amazon es un ejemplo claro, vende muchisimo gracias a sus algoritmos. Tambien hay riesgos que se deben considerar como la privacidad."</em>
+        (Notar: ortografía sin tildes, muletillas, falta de fuentes — lo arreglarás en el paso 6.)
+      </div>
+    </div>
+
+    <div class="wizard-step ws-5">
+      <h4>Paso 5 · Examinar los errores</h4>
+      <p>Léelo <strong>con ojos de evaluador</strong>, no de autor. Idealmente, deja pasar un día. Busca: errores lógicos, ortográficos, repeticiones, párrafos sin conector, citas sin referencia, opiniones que parecen hechos.</p>
+      <div class="example">
+        <strong>Hallazgos</strong>
+        ✗ "ya esta cambiando todo" → absoluto sin fuente<br>
+        ✗ "vende muchísimo" → impreciso (¿cuánto?)<br>
+        ✗ "personalizar y vender mas" → "más" sin tilde<br>
+        ✗ Falta una transición entre Amazon y los riesgos<br>
+        ✗ La conclusión no reafirma la tesis<br>
+        ✗ Ortografía: "esta" → "está"; "muchisimo" → "muchísimo"
+      </div>
+    </div>
+
+    <div class="wizard-step ws-6">
+      <h4>Paso 6 · Corregir el borrador</h4>
+      <p>Aplica las correcciones del paso 5. Reescribe los pasajes débiles, añade citas, mejora conectores y ajusta el tono al impersonal académico.</p>
+      <div class="example">
+        <strong>Versión corregida</strong>
+        <em>"La inteligencia artificial está transformando profundamente las prácticas del marketing contemporáneo (Davenport, 2022). Las organizaciones la emplean para personalizar la experiencia del consumidor y optimizar las decisiones comerciales. Un caso paradigmático es Amazon, cuyo motor de recomendaciones genera el 35% de sus ingresos totales (McKinsey, 2023). Sin embargo, esta adopción acelerada plantea desafíos éticos significativos, particularmente en materia de privacidad de datos…"</em>
+      </div>
+    </div>
+
+    <div class="wizard-step ws-7">
+      <h4>Paso 7 · Redacción final</h4>
+      <p>Versión limpia, <strong>lista para entregar</strong>: tipografía consistente, citas verificadas, referencias formateadas (APA), título centrado, márgenes correctos. Última lectura en voz alta para detectar cualquier cosa que suene rara.</p>
+      <div class="example">
+        <strong>Checklist final</strong>
+        ☑ Título descriptivo y centrado<br>
+        ☑ Tesis explícita en la introducción<br>
+        ☑ Cada párrafo tiene conector con el anterior<br>
+        ☑ Todas las citas tienen referencia en la bibliografía<br>
+        ☑ Bibliografía en formato APA, ordenada alfabéticamente<br>
+        ☑ Ortografía y tildes revisadas<br>
+        ☑ Conclusión reafirma la tesis<br>
+        ☑ Numeración de páginas<br>
+        ☑ Lectura en voz alta hecha
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <span class="kicker" style="background:var(--accent);color:#fff">📝 Quiz interactivo</span>
+  <h2>15 preguntas para el acumulativo</h2>
+  <p class="lead">Marca la respuesta y verás <strong>feedback inmediato</strong>. Si te equivocas, el sistema te explica por qué — para que aprendas, no para que adivines.</p>
+
+  <div class="quiz">
+    <div class="q">
+      <p class="qtxt">1. ¿Cuál es el objetivo principal de la redacción académica, según las profesoras Cacique y Vivas?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q1"><span class="lbl">Entretener al lector con un estilo creativo</span></label>
+        <label class="opt correct"><input type="radio" name="q1"><span class="lbl">Comunicar un conocimiento especializado de forma objetiva, rigurosa y verificable</span></label>
+        <label class="opt wrong"><input type="radio" name="q1"><span class="lbl">Demostrar dominio del idioma con palabras complejas</span></label>
+        <label class="opt wrong"><input type="radio" name="q1"><span class="lbl">Conmover a la comunidad académica con argumentos emocionales</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> La redacción académica busca comunicar conocimiento con rigor; no entretener ni conmover. Esa es la diferencia clave frente a la redacción literaria.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Esas son funciones de otros tipos de escritura (literaria, periodística). La academia exige objetividad y verificabilidad — no busca emocionar.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">2. ¿Cuál de estas NO es una de las 5 características principales de la redacción académica?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q2"><span class="lbl">Objetividad</span></label>
+        <label class="opt wrong"><input type="radio" name="q2"><span class="lbl">Verificabilidad</span></label>
+        <label class="opt correct"><input type="radio" name="q2"><span class="lbl">Originalidad expresiva</span></label>
+        <label class="opt wrong"><input type="radio" name="q2"><span class="lbl">Cohesión y coherencia</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Las 5 son: objetividad, formalidad, precisión, verificabilidad, cohesión-coherencia. La "originalidad expresiva" es propia de la redacción literaria.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Esa SÍ es una de las 5 características. La que NO pertenece al listado es la "originalidad expresiva" (propia de lo literario).</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">3. ¿Cuándo se debe hacer el subrayado de un texto?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q3"><span class="lbl">En la primera lectura, para no olvidar nada</span></label>
+        <label class="opt correct"><input type="radio" name="q3"><span class="lbl">En la segunda lectura (lectura comprensiva), después de saber a dónde va el autor</span></label>
+        <label class="opt wrong"><input type="radio" name="q3"><span class="lbl">Solo al final, cuando se va a hacer el esquema</span></label>
+        <label class="opt wrong"><input type="radio" name="q3"><span class="lbl">Mientras se hace el resumen escrito</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Nunca en la primera lectura: en un primer contacto todo parece igual de importante. El subrayado efectivo ocurre en la segunda lectura.</div>
+      <div class="explain ko"><strong>✗ Error muy común.</strong> Si subrayas en la primera lectura, terminas resaltando páginas enteras. La técnica funciona solo en la segunda pasada.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">4. ¿Cuál es el número máximo de colores recomendado en el código de subrayado?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q4"><span class="lbl">2 colores</span></label>
+        <label class="opt correct"><input type="radio" name="q4"><span class="lbl">3 o 4 colores</span></label>
+        <label class="opt wrong"><input type="radio" name="q4"><span class="lbl">5 a 7 colores</span></label>
+        <label class="opt wrong"><input type="radio" name="q4"><span class="lbl">Todos los que el estudiante quiera</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Máximo 3 o 4 colores: amarillo para idea principal, verde/azul para secundarias, rosa/naranja para datos específicos.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Más de 4 colores genera ruido visual. La regla de oro es 3-4 colores con un significado fijo para cada uno.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">5. ¿Cuáles son las 3 fases del proceso de tomar apuntes?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q5"><span class="lbl">Leer, escribir, memorizar</span></label>
+        <label class="opt correct"><input type="radio" name="q5"><span class="lbl">Antes (preparación), durante (escucha activa), después (revisión y edición)</span></label>
+        <label class="opt wrong"><input type="radio" name="q5"><span class="lbl">Escuchar, copiar, repasar</span></label>
+        <label class="opt wrong"><input type="radio" name="q5"><span class="lbl">Subrayar, esquematizar, resumir</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> La fase del DESPUÉS es la que casi nadie hace y la que marca la diferencia: revisar, añadir aclaraciones, corregir confusiones.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Las 3 fases son ANTES (preparación), DURANTE (escucha activa) y DESPUÉS (revisión). El "después" es crítico.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">6. ¿Cuál es el método de tomar notas más recomendado científicamente?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q6"><span class="lbl">Mapas mentales</span></label>
+        <label class="opt wrong"><input type="radio" name="q6"><span class="lbl">Esquema u Outline</span></label>
+        <label class="opt correct"><input type="radio" name="q6"><span class="lbl">Método Cornell</span></label>
+        <label class="opt wrong"><input type="radio" name="q6"><span class="lbl">Transcripción literal</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Cornell divide la hoja en 3 zonas: notas (derecha-ancha), claves (izquierda-angosta) y resumen (abajo). La revisión queda integrada.</div>
+      <div class="explain ko"><strong>✗ No.</strong> El método más recomendado científicamente es Cornell (3 secciones de hoja). Las otras técnicas son válidas pero menos estructuradas.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">7. ¿Qué es un esquema?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q7"><span class="lbl">Un resumen escrito en párrafos largos</span></label>
+        <label class="opt correct"><input type="radio" name="q7"><span class="lbl">La representación gráfica y estructurada de las ideas principales, secundarias y detalles de un tema</span></label>
+        <label class="opt wrong"><input type="radio" name="q7"><span class="lbl">Una lista alfabética de los temas tratados</span></label>
+        <label class="opt wrong"><input type="radio" name="q7"><span class="lbl">El primer borrador de un ensayo</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> El esquema es jerárquico, breve y visual — permite captar la estructura completa de un solo golpe de vista.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Un esquema no se escribe en párrafos: usa palabras clave, frases cortas, llaves, números y disposición jerárquica visual.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">8. ¿Cuáles son las 3 características principales del esquema?</p>
+      <div class="opts">
+        <label class="opt correct"><input type="radio" name="q8"><span class="lbl">Jerarquización, brevedad y visualización</span></label>
+        <label class="opt wrong"><input type="radio" name="q8"><span class="lbl">Longitud, profundidad y detalle</span></label>
+        <label class="opt wrong"><input type="radio" name="q8"><span class="lbl">Citas, referencias y bibliografía</span></label>
+        <label class="opt wrong"><input type="radio" name="q8"><span class="lbl">Introducción, desarrollo y conclusión</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Jerarquización (de general a específico), brevedad (sustituye párrafos por conceptos), visualización (estructura captable de una mirada).</div>
+      <div class="explain ko"><strong>✗ No.</strong> Son jerarquización, brevedad y visualización. Las otras opciones describen partes de un ensayo o elementos del aparato crítico, no del esquema.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">9. ¿Cuál es la pregunta fundamental que debe responder cualquier resumen?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q9"><span class="lbl">¿Quién?</span></label>
+        <label class="opt correct"><input type="radio" name="q9"><span class="lbl">¿Qué?</span></label>
+        <label class="opt wrong"><input type="radio" name="q9"><span class="lbl">¿Cuándo?</span></label>
+        <label class="opt wrong"><input type="radio" name="q9"><span class="lbl">¿Por qué?</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> El "¿Qué?" es el centro del discurso o tratado. Las demás preguntas (Quién, Cómo, Cuándo, Dónde, Por qué) se refieren al autor, contexto o motivación.</div>
+      <div class="explain ko"><strong>✗ No.</strong> La pregunta fundamental es "¿Qué?" — es la idea central. Las otras 5 son complementarias (autor, contexto, motivación).</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">10. ¿Cuántas son las preguntas clave para estructurar un resumen?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q10"><span class="lbl">4 preguntas</span></label>
+        <label class="opt wrong"><input type="radio" name="q10"><span class="lbl">5 preguntas</span></label>
+        <label class="opt correct"><input type="radio" name="q10"><span class="lbl">6 preguntas</span></label>
+        <label class="opt wrong"><input type="radio" name="q10"><span class="lbl">7 preguntas</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Son 6: ¿Qué? ¿Quién? ¿Cómo? ¿Cuándo? ¿Dónde? ¿Por qué? La del "¿Qué?" es la fundamental.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Son 6 preguntas: Qué, Quién, Cómo, Cuándo, Dónde, Por qué.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">11. Según la profesora Vivas, ¿es correcto incluir tus opiniones personales en el cuerpo de un resumen?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q11"><span class="lbl">Sí, siempre, para enriquecer el texto</span></label>
+        <label class="opt correct"><input type="radio" name="q11"><span class="lbl">No nunca en el cuerpo; solo al final como un apartado de "conclusiones personales"</span></label>
+        <label class="opt wrong"><input type="radio" name="q11"><span class="lbl">Solo si el profesor lo pide explícitamente</span></label>
+        <label class="opt wrong"><input type="radio" name="q11"><span class="lbl">Sí, intercaladas con las ideas del autor</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Regla número 9 de la profesora Vivas: nunca anote ideas, reflexiones, juicios u opiniones personales. Si las tiene, agréguelas al final como "conclusiones personales".</div>
+      <div class="explain ko"><strong>✗ No.</strong> Mezclar tus opiniones con las del autor distorsiona el resumen. Si tienes algo que decir, va al FINAL como apartado separado.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">12. ¿Cuáles son las 3 partes obligatorias de la estructura de un ensayo?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q12"><span class="lbl">Título, contenido y firma</span></label>
+        <label class="opt correct"><input type="radio" name="q12"><span class="lbl">Introducción, cuerpo (desarrollo) y conclusión</span></label>
+        <label class="opt wrong"><input type="radio" name="q12"><span class="lbl">Tesis, argumento y refutación</span></label>
+        <label class="opt wrong"><input type="radio" name="q12"><span class="lbl">Resumen, análisis y bibliografía</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> La introducción presenta el tema y la tesis; el cuerpo desarrolla los argumentos; la conclusión sintetiza y reafirma la tesis.</div>
+      <div class="explain ko"><strong>✗ No.</strong> La estructura clásica es: introducción (tema + tesis), cuerpo (argumentos + evidencia + análisis + transiciones), conclusión (resumen + reafirmación + reflexión).</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">13. ¿Cuántas son las clases de ensayo según la profesora Vivas?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q13"><span class="lbl">2 clases</span></label>
+        <label class="opt correct"><input type="radio" name="q13"><span class="lbl">3 clases: exposición de ideas personales, crítica y creación</span></label>
+        <label class="opt wrong"><input type="radio" name="q13"><span class="lbl">4 clases: descriptivo, narrativo, expositivo, argumentativo</span></label>
+        <label class="opt wrong"><input type="radio" name="q13"><span class="lbl">5 clases</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Son 3 categorías: (1) exposición de ideas personales (religiosas, ideológicas, económicas), (2) crítica (humana, artística, política), (3) creación (relatos ficticios).</div>
+      <div class="explain ko"><strong>✗ No.</strong> Son 3 clases: ideas personales, crítica y creación. Las clasificaciones de 4 tipos pertenecen a otras tipologías textuales (no específicamente al ensayo).</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">14. ¿Cuál es el primer paso para redactar un ensayo según los 7 pasos?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q14"><span class="lbl">Redactar el primer borrador</span></label>
+        <label class="opt wrong"><input type="radio" name="q14"><span class="lbl">Listar las ideas más importantes</span></label>
+        <label class="opt correct"><input type="radio" name="q14"><span class="lbl">Identificar el tema que se va a desarrollar</span></label>
+        <label class="opt wrong"><input type="radio" name="q14"><span class="lbl">Investigar fuentes bibliográficas</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Sin tema claro y delimitado, todo lo que viene después se desvía. El paso 1 es la fundación.</div>
+      <div class="explain ko"><strong>✗ No.</strong> Antes de listar ideas o investigar, primero hay que IDENTIFICAR el tema. Sin tema delimitado no hay rumbo.</div>
+    </div>
+
+    <div class="q">
+      <p class="qtxt">15. ¿Cuál de estas características distingue mejor a la redacción académica de la literaria?</p>
+      <div class="opts">
+        <label class="opt wrong"><input type="radio" name="q15"><span class="lbl">Usa palabras más complejas</span></label>
+        <label class="opt wrong"><input type="radio" name="q15"><span class="lbl">Es más larga</span></label>
+        <label class="opt correct"><input type="radio" name="q15"><span class="lbl">Su objetivo es comunicar conocimiento verificable, no entretener ni conmover</span></label>
+        <label class="opt wrong"><input type="radio" name="q15"><span class="lbl">Se publica en revistas</span></label>
+      </div>
+      <div class="explain ok"><strong>✓ Correcto.</strong> Esa es la diferencia clave: <strong>el propósito</strong>. La académica busca conocimiento; la literaria busca emoción o belleza.</div>
+      <div class="explain ko"><strong>✗ No.</strong> La distinción real es el PROPÓSITO: académica = comunicar conocimiento verificable. Literaria = entretener o conmover. La complejidad o longitud son accesorias.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MATCH -->
+<section id="match">
+  <span class="kicker" style="background:var(--t3);color:#fff">🎯 Match · Empareja</span>
+  <h2 style="color:var(--t3)">Empareja la herramienta con su propósito</h2>
+  <p class="lead">Selecciona la respuesta correcta de la derecha para cada herramienta. <strong>Verde = correcto</strong>.</p>
+
+  <div class="match">
+    <div class="match-board">
+      <div class="match-col">
+        <h4>Herramienta / técnica</h4>
+        <div class="match-row r1"><input type="radio" name="m1"><span>📑 Subrayado</span></div>
+        <div class="match-row r2"><input type="radio" name="m2"><span>📝 Apuntes Cornell</span></div>
+        <div class="match-row r3"><input type="radio" name="m3"><span>🗂 Esquema</span></div>
+        <div class="match-row r4"><input type="radio" name="m4"><span>🧾 Resumen</span></div>
+        <div class="match-row r5"><input type="radio" name="m5"><span>✍️ Ensayo</span></div>
+        <div class="match-row r6"><input type="radio" name="m6"><span>🧠 Mapa mental</span></div>
+        <div class="match-row r7"><input type="radio" name="m7"><span>📚 Bibliografía</span></div>
+        <div class="match-row r8"><input type="radio" name="m8"><span>🎯 Tesis</span></div>
+      </div>
+      <div class="match-col">
+        <h4>Propósito o definición</h4>
+        <div class="match-row a4"><span>Expresar en forma breve, con palabras del autor, el contenido de un tema</span></div>
+        <div class="match-row a8"><span>Declaración clara de la posición o argumento principal del ensayo</span></div>
+        <div class="match-row a1"><span>Destacar ideas clave del texto durante la segunda lectura</span></div>
+        <div class="match-row a3"><span>Representación gráfica y jerárquica de las ideas principales y secundarias</span></div>
+        <div class="match-row a6"><span>Notas radiales con tema central y ramas para mentes visuales</span></div>
+        <div class="match-row a2"><span>Notas con 3 zonas: claves (izq), notas (der), resumen (abajo)</span></div>
+        <div class="match-row a5"><span>Análisis profundo de un tema con interpretación personal del autor</span></div>
+        <div class="match-row a7"><span>Lista de fuentes consultadas en formato APA/Vancouver al final del texto</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="flashcards">
+  <span class="kicker" style="background:var(--t5);color:#fff">🃏 Flashcards</span>
+  <h2 style="color:var(--t5)">35 flashcards · clic para revelar respuesta</h2>
+
+  <h3>Concepto y características</h3>
+  <div class="fc-grid">
+    <details class="fc t1"><summary>¿Qué es la redacción académica?</summary><div class="answer">El conjunto de estrategias, normas y habilidades que se utilizan para producir textos propios del ámbito universitario, científico o de investigación (ensayos, tesis, monografías, artículos).</div></details>
+    <details class="fc t1"><summary>¿Cuál es su objetivo, diferente al literario?</summary><div class="answer">Comunicar un conocimiento especializado de forma objetiva, rigurosa y verificable. NO busca entretener ni conmover.</div></details>
+    <details class="fc t1"><summary>Las 5 características principales</summary><div class="answer">Objetividad · Formalidad · Precisión · Verificabilidad · Cohesión y Coherencia.</div></details>
+    <details class="fc t1"><summary>¿Qué significa objetividad en este contexto?</summary><div class="answer">Centrarse en datos, hechos y evidencias, dejando de lado opiniones personales sin fundamento. Se prefiere "Se analizó" en lugar de "Yo analicé".</div></details>
+    <details class="fc t1"><summary>¿Qué es la verificabilidad?</summary><div class="answer">Todo lo que se afirma y que no sea de autoría propia debe poder comprobarse mediante citas y referencias bibliográficas.</div></details>
+    <details class="fc t1"><summary>Los 4 elementos clave del texto académico</summary><div class="answer">Estructura (esqueleto) · Aparato crítico (citas/referencias) · Estilo y tono · Proceso de revisión.</div></details>
+    <details class="fc t1"><summary>¿Qué persona gramatical usar?</summary><div class="answer">Tercera persona del singular o plural mayestático ("Se observa…", "Observamos…"). Nunca primera persona.</div></details>
+  </div>
+
+  <h3>Subrayado</h3>
+  <div class="fc-grid">
+    <details class="fc t2"><summary>¿Qué es el subrayado?</summary><div class="answer">Técnica de destacar mediante líneas o colores las ideas fraseológicas clave y los conceptos esenciales de un texto.</div></details>
+    <details class="fc t2"><summary>¿Cuándo NO subrayar?</summary><div class="answer">NUNCA en la primera lectura. En un primer contacto todo te parecerá importante.</div></details>
+    <details class="fc t2"><summary>Regla de oro del subrayado</summary><div class="answer">Al terminar, el texto debe seguir teniendo sentido completo, como un telegrama. Si no, se aplicó mal.</div></details>
+    <details class="fc t2"><summary>¿Cuántos colores máximo?</summary><div class="answer">3 o 4 colores. Más es ruido visual.</div></details>
+    <details class="fc t2"><summary>Los 3 tipos de subrayado</summary><div class="answer">Lineal (debajo de palabras) · Estructural (notas al margen izq) · De realce o signos (?, *, EX al margen der).</div></details>
+    <details class="fc t2"><summary>Código de colores típico</summary><div class="answer">Amarillo: ideas principales · Verde/Azul: secundarias · Rosa/Naranja: datos específicos (fechas, autores, %).</div></details>
+  </div>
+
+  <h3>Apuntes</h3>
+  <div class="fc-grid">
+    <details class="fc t3"><summary>Las 3 fases de tomar apuntes</summary><div class="answer">ANTES (preparación) · DURANTE (escucha activa y registro) · DESPUÉS (revisión y edición). El "después" es el que casi nadie hace.</div></details>
+    <details class="fc t3"><summary>¿Qué es el método Cornell?</summary><div class="answer">Hoja dividida en 3 zonas: columna izq angosta (claves), columna der ancha (notas en clase), margen inferior (resumen).</div></details>
+    <details class="fc t3"><summary>¿Cuándo se llenan las claves de Cornell?</summary><div class="answer">DESPUÉS de clase. Aquí escribes preguntas y palabras clave que te servirán para el repaso.</div></details>
+    <details class="fc t3"><summary>Los 3 métodos estructurados</summary><div class="answer">Cornell (el más recomendado) · Esquema u Outline · Mapas mentales.</div></details>
+    <details class="fc t3"><summary>¿Cuándo usar mapas mentales?</summary><div class="answer">Si eres una persona muy visual y la materia tiene conceptos muy interconectados.</div></details>
+  </div>
+
+  <h3>Esquema</h3>
+  <div class="fc-grid">
+    <details class="fc t4"><summary>¿Qué es un esquema?</summary><div class="answer">Representación gráfica y estructurada de las ideas principales, secundarias y detalles de un texto. Funciona como mapa-guía.</div></details>
+    <details class="fc t4"><summary>Las 3 características del esquema</summary><div class="answer">Jerarquización · Brevedad · Visualización.</div></details>
+    <details class="fc t4"><summary>División clásica del esquema</summary><div class="answer">I. Introducción · II. Cuerpo o Desarrollo · III. Conclusión.</div></details>
+    <details class="fc t4"><summary>¿Cuál es el método del esquema?</summary><div class="answer">Deductivo: va de lo general (idea central) a lo específico (detalles, ejemplos).</div></details>
+    <details class="fc t4"><summary>50 páginas de libro en esquema = ¿cuántas?</summary><div class="answer">3 o 4 páginas. Repasable en minutos en vez de horas.</div></details>
+  </div>
+
+  <h3>Resumen</h3>
+  <div class="fc-grid">
+    <details class="fc t5"><summary>¿Qué es un resumen?</summary><div class="answer">Expresar en forma breve, con las palabras del autor, el contenido de un tema, conservando la misma estructura.</div></details>
+    <details class="fc t5"><summary>Las 6 preguntas del resumen</summary><div class="answer">¿Qué? ¿Quién? ¿Cómo? ¿Cuándo? ¿Dónde? ¿Por qué? La fundamental es <strong>¿Qué?</strong> (la idea central).</div></details>
+    <details class="fc t5"><summary>¿Se incluyen opiniones personales?</summary><div class="answer">NO en el cuerpo del resumen. Solo al final, como apartado separado "conclusiones personales".</div></details>
+    <details class="fc t5"><summary>¿Cuántos pasos para elaborar un resumen?</summary><div class="answer">13 pasos: Comprenda → Capte la idea principal → Seleccione → Enliste → Compare → Rectifique → No generalice → Ordene → No anote ideas propias → Extensión → No deje preguntas sin resolver → Capte atención desde el inicio → Respete las palabras del autor.</div></details>
+    <details class="fc t5"><summary>Resumen vs síntesis (en la práctica)</summary><div class="answer">En teoría son distintos, pero en la práctica universitaria suelen tratarse como iguales. Lo importante: no mezcles tu opinión.</div></details>
+  </div>
+
+  <h3>Ensayo</h3>
+  <div class="fc-grid">
+    <details class="fc t6"><summary>¿Qué es un ensayo?</summary><div class="answer">El análisis y la explicación profunda que se hace de un tema determinado. Es un género literario moderno donde el autor reacciona ingeniosamente con sus prejuicios y pasiones.</div></details>
+    <details class="fc t6"><summary>Las 3 partes obligatorias de un ensayo</summary><div class="answer">Introducción (tema + tesis) · Cuerpo (argumentos + evidencia + análisis + transiciones) · Conclusión (resumen + reafirmación + reflexión).</div></details>
+    <details class="fc t6"><summary>Las 3 clases de ensayo</summary><div class="answer">1) Exposición de ideas personales (religiosas, ideológicas, económicas) · 2) Crítica (humana, artística, política) · 3) Creación (relatos ficticios).</div></details>
+    <details class="fc t6"><summary>Los 7 pasos para redactar un ensayo</summary><div class="answer">1) Identificar tema · 2) Listar ideas · 3) Formulación de ideas · 4) Redactar primer borrador · 5) Examinar errores · 6) Corregir el borrador · 7) Redacción final.</div></details>
+    <details class="fc t6"><summary>¿Qué es la tesis?</summary><div class="answer">Declaración clara que expresa la posición o el argumento principal del ensayo. Es la idea central que se desarrolla a lo largo del texto. Va al final de la introducción.</div></details>
+    <details class="fc t6"><summary>¿Qué función tienen las transiciones?</summary><div class="answer">Frases de enlace entre párrafos para mantener la fluidez y cohesión del texto.</div></details>
+    <details class="fc t6"><summary>Idea importante sobre el borrador</summary><div class="answer">El primer borrador rara vez es el último. Generalmente se requieren varios borradores antes de la redacción final.</div></details>
+  </div>
+</section>
+
+<!-- EJEMPLOS DE ENSAYOS -->
+<section id="ejemplos" class="t7">
+  <span class="kicker">📄 Ejemplos reales</span>
+  <h2>3 ensayos modelo · cómo se ve uno bien hecho</h2>
+  <p class="lead">Estos ensayos están en el material de la profesora Vivas como modelos. <strong>Léelos para internalizar la estructura</strong> intro-cuerpo-conclusión con tesis explícita, citas con autor-año y bibliografía al final.</p>
+
+  <details class="example-essay" open>
+    <summary>1 · La Digitalización en la Contabilidad</summary>
+    <div class="body">
+      <h6>Introducción</h6>
+      <p>La digitalización ha revolucionado la práctica contable, ofreciendo herramientas que mejoran la eficiencia y la precisión. Este ensayo analiza el impacto de la tecnología en el campo de la contabilidad.</p>
+      <h6>Cuerpo del Ensayo</h6>
+      <ul>
+        <li><strong>Automatización y eficiencia:</strong> Según Cokins (2017), "La automatización de procesos contables permite a los contadores enfocarse en análisis estratégicos que aportan valor". Esto resalta cómo la tecnología puede liberar tiempo para el análisis estratégico.</li>
+        <li><strong>Acceso a datos en tiempo real:</strong> La digitalización permite a las empresas acceder a información financiera de manera inmediata. Como señala J. Edwards (2019), "El acceso en tiempo real a datos financieros facilita la toma de decisiones rápidas y precisas en un entorno empresarial cambiante".</li>
+        <li><strong>Riesgos de seguridad:</strong> Sin embargo, la digitalización también presenta desafíos. Según KPMG (2018), "Los riesgos de ciberseguridad son una preocupación creciente para las organizaciones, y la contabilidad digital no es una excepción". Es fundamental que las empresas implementen medidas de seguridad adecuadas.</li>
+      </ul>
+      <h6>Conclusión</h6>
+      <p>La digitalización en la contabilidad ofrece oportunidades significativas para mejorar la eficiencia y la precisión, pero también plantea desafíos que deben ser abordados. Las organizaciones deben equilibrar la innovación tecnológica con la seguridad y la ética.</p>
+    </div>
+  </details>
+
+  <details class="example-essay">
+    <summary>2 · La Relevancia de la Contaduría en la Toma de Decisiones Empresariales</summary>
+    <div class="body">
+      <h6>Introducción</h6>
+      <p>La contaduría es una disciplina esencial para la gestión empresarial, ya que proporciona la información necesaria para la toma de decisiones estratégicas. En un entorno empresarial cambiante, la contabilidad no solo se limita a la presentación de informes financieros, sino que también juega un papel crucial en la planificación y control de las operaciones empresariales.</p>
+      <h6>Cuerpo del Ensayo</h6>
+      <ul>
+        <li><strong>Función de la contaduría:</strong> Según Horngren, Sundem y Stratton (2013), "La contabilidad se considera el lenguaje de los negocios, ya que permite comunicar la situación financiera y los resultados de las operaciones de una empresa a sus interesados". Esta afirmación subraya la importancia de la contabilidad como herramienta de comunicación.</li>
+        <li><strong>Toma de decisiones informadas:</strong> La información contable es vital para que los gerentes tomen decisiones informadas. Como señala Kieso, Weygandt y Warfield (2016), "Los estados financieros proporcionan una base sólida para la toma de decisiones estratégicas, ya que reflejan la rentabilidad y la estabilidad financiera de una organización".</li>
+        <li><strong>Prevención de fraudes y errores:</strong> Un sistema contable adecuado también ayuda a prevenir fraudes y errores. Según Rezaee (2002), "La implementación de controles internos efectivos es fundamental para la integridad de la información financiera y la prevención de actividades fraudulentas".</li>
+        <li><strong>Adaptación a cambios:</strong> La contabilidad también debe adaptarse a los cambios en el entorno empresarial. Como menciona Epstein y Nach (2019), "Los contadores deben estar preparados para enfrentar nuevos desafíos, como la digitalización y las regulaciones cambiantes, que impactan directamente en la práctica contable".</li>
+      </ul>
+      <h6>Conclusión</h6>
+      <p>La contaduría juega un papel fundamental en la toma de decisiones empresariales. Proporciona información clave que permite a los gerentes evaluar el rendimiento de la empresa y tomar decisiones estratégicas basadas en datos precisos.</p>
+      <h6>Referencias</h6>
+      <ul>
+        <li>Epstein, L., &amp; Nach, D. (2019). <em>Accounting Principles</em>. Wiley.</li>
+        <li>Horngren, C. T., Sundem, G. L., &amp; Stratton, W. O. (2013). <em>Introduction to Management Accounting</em>. Pearson.</li>
+        <li>Kieso, D. E., Weygandt, J. J., &amp; Warfield, T. D. (2016). <em>Intermediate Accounting</em>. Wiley.</li>
+        <li>Rezaee, Z. (2002). <em>Financial Statement Fraud: Prevention and Detection</em>. Wiley.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="example-essay">
+    <summary>3 · La Importancia del Marketing Digital en la Era Moderna</summary>
+    <div class="body">
+      <h6>Introducción</h6>
+      <p>En la actualidad, el marketing digital se ha convertido en una herramienta fundamental para las empresas que buscan alcanzar y conectar con sus consumidores. La transformación digital ha cambiado la forma en que las marcas interactúan con sus audiencias, haciendo que el marketing digital sea más relevante que nunca.</p>
+      <h6>Cuerpo del Ensayo</h6>
+      <ul>
+        <li><strong>Evolución del marketing:</strong> Según Kotler y Keller (2016), "El marketing ha evolucionado de un enfoque centrado en el producto a uno centrado en el consumidor". Esta evolución resalta la importancia de entender las necesidades y deseos del cliente en un entorno digital.</li>
+        <li><strong>Acceso a un público más amplio:</strong> El marketing digital permite a las empresas alcanzar audiencias globales. Como menciona Ryan (2016), "Las plataformas digitales han eliminado las barreras geográficas, permitiendo que incluso las pequeñas empresas compitan en el mercado global". Esto ha democratizado el acceso al mercado y ha abierto nuevas oportunidades para todos.</li>
+        <li><strong>Medición y análisis:</strong> Una de las ventajas más significativas es la capacidad de medir el desempeño en tiempo real. Según Chaffey (2019), "El análisis de datos permite a los marketers ajustar sus estrategias de manera ágil, maximizando así el retorno de la inversión".</li>
+        <li><strong>Relación con el cliente:</strong> El marketing digital también facilita una comunicación más directa y personal con los consumidores. Como señala Godin (2018), "El marketing ya no se trata solo de vender, sino de contar historias y construir relaciones duraderas con los clientes".</li>
+      </ul>
+      <h6>Conclusión</h6>
+      <p>El marketing digital ha transformado la forma en que las empresas operan y se comunican con sus clientes. A medida que avanzamos en la era digital, es crucial que las empresas adopten estas nuevas estrategias para mantenerse relevantes y competitivas. El marketing digital es indispensable en el mundo empresarial actual.</p>
+      <h6>Referencias</h6>
+      <ul>
+        <li>Chaffey, D. (2019). <em>Digital Marketing: Strategy, Implementation, and Practice</em>. Pearson.</li>
+        <li>Godin, S. (2018). <em>This Is Marketing: You Can't Be Seen Until You Learn to See</em>. Portfolio.</li>
+        <li>Kotler, P., &amp; Keller, K. L. (2016). <em>Marketing Management</em>. Pearson.</li>
+        <li>Ryan, D. (2016). <em>Understanding Digital Marketing: Marketing Strategies for Engaging the Digital Generation</em>. Kogan Page.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- MNEMOTECNIAS -->
+<section id="mnemo">
+  <span class="kicker" style="background:var(--gold);color:#fff">🧠 Mnemotecnia</span>
+  <h2 style="color:var(--gold)">Trucos para recordar todo en el acumulativo</h2>
+  <div class="mnemo">
+    <div class="mnemo-card">
+      <span class="acro">OFPVC</span>
+      <h5>Las 5 características</h5>
+      <p><strong>O</strong>bjetividad · <strong>F</strong>ormalidad · <strong>P</strong>recisión · <strong>V</strong>erificabilidad · <strong>C</strong>ohesión-coherencia</p>
+      <p><em>"Ofelia formal precisa verifica cohesión"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">SAER</span>
+      <h5>Las 4 herramientas (en orden)</h5>
+      <p><strong>S</strong>ubrayar → <strong>A</strong>puntes → <strong>E</strong>squema → <strong>R</strong>esumen</p>
+      <p><em>"SAER es el camino del estudiante: subraya, anota, esquematiza, resume"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">ADD</span>
+      <h5>Las 3 fases de apuntes</h5>
+      <p><strong>A</strong>ntes (preparación) · <strong>D</strong>urante (escucha activa) · <strong>D</strong>espués (revisión)</p>
+      <p><em>"ADD: el DESPUÉS es el que casi nadie hace"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">QQCCDP</span>
+      <h5>Las 6 preguntas del resumen</h5>
+      <p><strong>Q</strong>ué (la fundamental) · <strong>Q</strong>uién · <strong>C</strong>ómo · <strong>C</strong>uándo · <strong>D</strong>ónde · <strong>P</strong>or qué</p>
+      <p><em>"Periodista de la academia: ¿Qué pasó, quién, cómo, cuándo, dónde y por qué?"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">ICC</span>
+      <h5>Estructura del ensayo</h5>
+      <p><strong>I</strong>ntroducción · <strong>C</strong>uerpo · <strong>C</strong>onclusión</p>
+      <p><em>"ICC: igual que un sándwich — pan-relleno-pan"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">ILFRECF</span>
+      <h5>Los 7 pasos del ensayo</h5>
+      <p><strong>I</strong>dentificar · <strong>L</strong>istar · <strong>F</strong>ormular · <strong>R</strong>edactar borrador · <strong>E</strong>xaminar · <strong>C</strong>orregir · <strong>F</strong>inal</p>
+      <p><em>"I love freshly cooked food"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">3-4 colores</span>
+      <h5>Código del subrayado</h5>
+      <p><strong>Amarillo</strong> = idea principal · <strong>Verde/Azul</strong> = secundaria · <strong>Rosa/Naranja</strong> = dato específico</p>
+      <p><em>"Como un semáforo invertido: amarillo manda, verde apoya, rojo destaca"</em></p>
+    </div>
+    <div class="mnemo-card">
+      <span class="acro">CNI / CN-S</span>
+      <h5>Cornell en 3 zonas</h5>
+      <p><strong>C</strong>laves (izq) · <strong>N</strong>otas (der) · <strong>S</strong>íntesis (abajo)</p>
+      <p><em>"Cornell: dos columnas y un piso abajo, como una casa"</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- GLOSARIO -->
+<section id="glosario">
+  <span class="kicker" style="background:var(--t4);color:#fff">📚 Glosario</span>
+  <h2 style="color:var(--t4)">25 términos clave del acumulativo</h2>
+
+  <details class="glo"><summary>Aparato crítico</summary><div class="def">Sistema de citas y referencias que sostiene la validez de un texto académico. Incluye citas textuales, parafraseadas y bibliografía al final.</div></details>
+  <details class="glo"><summary>APA (American Psychological Association)</summary><div class="def">Norma internacional para citar y referenciar fuentes en textos académicos, especialmente en ciencias sociales. Otras normas: Vancouver, Harvard, Chicago.</div></details>
+  <details class="glo"><summary>Bibliografía</summary><div class="def">Lista detallada de los libros, artículos o webs consultadas, ubicada al final del texto académico.</div></details>
+  <details class="glo"><summary>Borrador</summary><div class="def">Versión preliminar del texto. Generalmente se requieren varios antes de la redacción final.</div></details>
+  <details class="glo"><summary>Cita parafraseada</summary><div class="def">Mención de la idea de un autor usando palabras propias, pero acreditándole la idea con la referencia correspondiente.</div></details>
+  <details class="glo"><summary>Cita textual</summary><div class="def">Reproducción literal de las palabras de un autor, entre comillas, con su referencia exacta (autor, año, página).</div></details>
+  <details class="glo"><summary>Cohesión</summary><div class="def">Conexión lógica y gramatical entre las distintas partes del texto, mediante conectores y referentes.</div></details>
+  <details class="glo"><summary>Coherencia</summary><div class="def">Unidad de sentido del texto. Las ideas se relacionan entre sí y giran alrededor de un tema central.</div></details>
+  <details class="glo"><summary>Conectores lógicos</summary><div class="def">Palabras o frases que unen ideas dentro y entre párrafos: "por lo tanto", "en consecuencia", "no obstante", "sin embargo".</div></details>
+  <details class="glo"><summary>Cornell (método)</summary><div class="def">Sistema de tomar notas que divide la hoja en 3 zonas: claves (izq), notas (der), resumen (abajo). El más recomendado científicamente.</div></details>
+  <details class="glo"><summary>Ensayo</summary><div class="def">Análisis y explicación profunda de un tema, donde el autor expone su interpretación personal con argumentos.</div></details>
+  <details class="glo"><summary>Esquema</summary><div class="def">Representación gráfica y estructurada de las ideas principales, secundarias y detalles. Mapa-guía del texto.</div></details>
+  <details class="glo"><summary>Formalidad</summary><div class="def">Uso de la lengua culta, precisa y técnica. Evita el lenguaje coloquial, las jergas y las abreviaturas informales.</div></details>
+  <details class="glo"><summary>Jerarquización</summary><div class="def">Organización de la información de lo más general a lo más específico (idea central → principal → secundaria → detalle).</div></details>
+  <details class="glo"><summary>Mapa mental</summary><div class="def">Diagrama con un tema central y ramas radiales con palabras clave, flechas y colores. Útil para mentes visuales.</div></details>
+  <details class="glo"><summary>Mayestático (plural)</summary><div class="def">Uso de "nosotros" en lugar de "yo" en el discurso académico ("Observamos…"). Mantiene la impersonalidad sin sonar distante.</div></details>
+  <details class="glo"><summary>Objetividad</summary><div class="def">Foco en datos, hechos y evidencias verificables. Se evita el "yo pienso" y se prefiere "se considera" o "se observa".</div></details>
+  <details class="glo"><summary>Outline (esquema)</summary><div class="def">Método de tomar notas con sangrías progresivas que muestran la jerarquía de las ideas. Ideal para clases estructuradas.</div></details>
+  <details class="glo"><summary>Precisión</summary><div class="def">Decir exactamente lo que se quiere decir, con las palabras justas. Sin vaguedades como "más o menos" o "casi todo".</div></details>
+  <details class="glo"><summary>Resumen</summary><div class="def">Expresión breve, con las palabras del autor, del contenido de un tema. Conserva la estructura original.</div></details>
+  <details class="glo"><summary>Síntesis</summary><div class="def">En sentido estricto: resumen con palabras propias. En la práctica universitaria, suele usarse como sinónimo de resumen.</div></details>
+  <details class="glo"><summary>Subrayado</summary><div class="def">Técnica de destacar mediante líneas o colores las ideas clave de un texto. Solo en la segunda lectura.</div></details>
+  <details class="glo"><summary>Tesis (en un ensayo)</summary><div class="def">Declaración clara de la posición o argumento principal que se defenderá en el texto. Va al final de la introducción.</div></details>
+  <details class="glo"><summary>Transición</summary><div class="def">Frase de enlace entre párrafos para mantener la fluidez y cohesión del texto.</div></details>
+  <details class="glo"><summary>Verificabilidad</summary><div class="def">Característica de un texto académico cuyas afirmaciones pueden comprobarse mediante citas y referencias bibliográficas.</div></details>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p><strong>Demo · Redacción Académica · HTML generado por claude-students</strong></p>
+  <p>Demostración del patrón validado · github.com/josuebustosn/claude-students</p>
+  <p class="made">Sintetizado y diseñado por Claude Opus 4.7 · Anthropic · PLAN MAX 20×</p>
+  <div class="meta">
+    <span>📊 35 flashcards</span>
+    <span>📝 15 preguntas quiz</span>
+    <span>🎯 8 pares match</span>
+    <span>📚 25 glosario</span>
+    <span>🧠 8 mnemotecnias</span>
+    <span>📄 3 ensayos modelo</span>
+  </div>
+</footer>
+
+</main>
+</body>
+</html>

@@ -116,7 +116,7 @@ Claude Code busca skills en `~/.claude/skills/`. Hay dos formas:
 **macOS / Linux:**
 ```bash
 mkdir -p ~/.claude/skills
-ln -s ~/claude-skills/claude-students/skills/parcial-estudio ~/.claude/skills/parcial-estudio
+ln -s ~/claude-skills/claude-students/skills/claude-students ~/.claude/skills/claude-students
 ln -s ~/claude-skills/gemini-transcribe ~/.claude/skills/transcribir
 ```
 
@@ -130,7 +130,7 @@ New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.claude\skills\transcrib
 
 ```bash
 mkdir -p ~/.claude/skills
-cp -r ~/claude-skills/claude-students/skills/parcial-estudio ~/.claude/skills/
+cp -r ~/claude-skills/claude-students/skills/claude-students ~/.claude/skills/
 cp -r ~/claude-skills/gemini-transcribe ~/.claude/skills/transcribir
 ```
 
@@ -144,7 +144,7 @@ Abre Claude Code en cualquier carpeta y escribe:
 qué skills tienes disponibles?
 ```
 
-Deberías ver `parcial-estudio` y `transcribir` en la lista.
+Deberías ver `claude-students` y `transcribir` en la lista.
 
 Probar el skill:
 
@@ -171,7 +171,7 @@ Verifica la ruta exacta:
 Get-ChildItem "C:\Program Files\LibreOffice\program\soffice.exe"
 ```
 
-Si está en otra ubicación (LibreOffice portable, etc.), edita `skills/parcial-estudio/scripts/convert_to_pdf.ps1` con la ruta correcta.
+Si está en otra ubicación (LibreOffice portable, etc.), edita `skills/claude-students/scripts/convert_to_pdf.ps1` con la ruta correcta.
 
 ### PyMuPDF "No common ancestor in structure tree"
 
@@ -193,7 +193,7 @@ Si usaste symlinks, los cambios se aplican solos. Si copiaste, repite el Paso 4.
 ## Desinstalar
 
 ```bash
-rm ~/.claude/skills/parcial-estudio
+rm ~/.claude/skills/claude-students
 rm ~/.claude/skills/transcribir
 rm -rf ~/claude-skills/claude-students
 rm -rf ~/claude-skills/gemini-transcribe

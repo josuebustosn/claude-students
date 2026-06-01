@@ -1,12 +1,46 @@
 # claude-students
 
-> Skills de Claude Code para estudiantes universitarios. Convierte el material crudo de un parcial — PDFs feos, DOCs viejos, capturas de WhatsApp, notas de voz — en un HTML de estudio interactivo + paquete completo de NotebookLM, en una sola conversación.
+> Skill de Claude Code para estudiantes universitarios. Convierte el material crudo de un parcial — PDFs feos, DOCs viejos, capturas de WhatsApp, notas de voz — en un HTML de estudio interactivo + paquete completo de NotebookLM, en una sola conversación.
 
 Pensado para estudiantes que reciben el material horas antes del examen y necesitan algo que rinda al máximo en el menor tiempo. No reemplaza el estudio — lo apalanca.
 
+![Hero del HTML generado en modo claro](./examples/screenshots/01-hero-light.png)
+
+## Cómo se ve lo que genera
+
+**Modo claro vs oscuro · ambos en un solo HTML, sin JavaScript:**
+
+| Light mode | Dark mode |
+|---|---|
+| ![Hero light](./examples/screenshots/01-hero-light.png) | ![Hero dark](./examples/screenshots/02-hero-dark.png) |
+
+**Quiz interactivo con feedback inmediato** — respuesta correcta en verde, incorrecta en rojo, ambas con explicación contextual:
+
+![Quiz interactivo con feedback](./examples/screenshots/03-quiz-interactivo.png)
+
+**Corrector interactivo** — texto con errores subrayados que el estudiante identifica marcando checkboxes:
+
+![Corrector interactivo](./examples/screenshots/04-corrector-interactivo.png)
+
+**Wizard de N pasos** — stepper CSS-only para procesos secuenciales (los 7 pasos de un ensayo, los 8 pasos de un proceso aduanero, etc.):
+
+![Wizard de 7 pasos](./examples/screenshots/05-wizard-7-pasos.png)
+
+**Flashcards colapsables** agrupadas por tema · `<details>` puro, click para revelar respuesta:
+
+![Flashcards](./examples/screenshots/06-flashcards.png)
+
+**Mnemotecnia visual** estilo card dorada — acrónimos y frases para memorizar:
+
+![Mnemotecnias](./examples/screenshots/07-mnemotecnia.png)
+
+> Todos los componentes anteriores son **CSS puro** — sin JavaScript. Funcionan en cualquier navegador, son `@media print` friendly, y se ven igual en mobile y desktop.
+
+Ver el HTML completo: [`examples/demo-redaccion-academica.html`](./examples/demo-redaccion-academica.html) (descárgalo y ábrelo localmente).
+
 ## Qué hay aquí
 
-### `skills/parcial-estudio`
+### `skills/claude-students`
 
 El skill principal. Toma una carpeta con el material de un parcial y produce:
 
@@ -79,7 +113,7 @@ git clone https://github.com/josuebustosn/claude-students ~/.claude/skills-sourc
 git clone https://github.com/josuebustosn/gemini-transcribe ~/.claude/skills-source/gemini-transcribe
 
 # 2. Symlink (o copiar) los skills a la carpeta de skills de Claude Code
-ln -s ~/.claude/skills-source/claude-students/skills/parcial-estudio ~/.claude/skills/parcial-estudio
+ln -s ~/.claude/skills-source/claude-students/skills/claude-students ~/.claude/skills/claude-students
 ln -s ~/.claude/skills-source/gemini-transcribe ~/.claude/skills/transcribir
 
 # 3. Instalar PyMuPDF y configurar GEMINI_API_KEY
@@ -110,7 +144,7 @@ El HTML que genera el skill aplica un patrón validado a lo largo de varias entr
 - **Print-friendly:** todos los componentes colapsables se expanden al imprimir.
 - **Color-coded por tema** con custom properties — visualmente legible.
 
-El patrón completo está documentado en `skills/parcial-estudio/references/html-pattern.md`.
+El patrón completo está documentado en `skills/claude-students/references/html-pattern.md`.
 
 ## Estructura del repo
 

@@ -1,5 +1,5 @@
 ---
-name: parcial-estudio
+name: claude-students
 description: Transforma una carpeta cruda de material de un parcial universitario (PDFs, DOC/DOCX, PPT, audios .ogg de WhatsApp, capturas) en un material de estudio polished y completo — HTML SOTA autocontenido + paquete de artefactos de NotebookLM (podcast en español, infografía, guía de estudio, briefing doc, mind map, quiz, flashcards). Usar este skill SIEMPRE que el usuario diga "tengo parcial de X", "ayúdame con este parcial", "armame el material de estudio", "convierte estos archivos en un HTML estudiable", "transforma esta carpeta en material de parcial", "pásame esta carpeta a HTML interactivo", o simplemente comparta una carpeta con archivos de materia universitaria. También activar cuando aparezcan archivos tipo "GUIA PARCIAL", "TEMA X", "CamScanner", "WhatsApp Ptt", "Parcial.pdf", "Acumulativo" en el contexto. El skill replica un patrón validado en múltiples entregas reales — no preguntar metodología antes de empezar, arrancar directo.
 ---
 
