@@ -1,0 +1,29 @@
+# Local-only files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node (por si se agrega algo)
+node_modules/
+
+# Carpetas de trabajo del skill (no se commitean — son output del usuario)
+**/Claude/_paginas/
+**/Claude/_pdf/
+
+# Archivos personales que no van al repo
+.claude/
+private/
